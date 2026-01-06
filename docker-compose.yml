@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-abcwopjg-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - BETTER_AUTH_SECRET=my_super_secure_hackathon_secret_key_2025
+      - OPENAI_API_KEY=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
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+      - NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: todo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

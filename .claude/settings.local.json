@@ -6,10 +6,8 @@
       "Bash(pip:*)",
       "Bash(uv:*)",
       "Bash(uvicorn:*)",
-
       "Bash(npm:*)",
       "Bash(node:*)",
-
       "Bash(mkdir:*)",
       "Bash(ls:*)",
       "Bash(dir:*)",
@@ -17,8 +15,18 @@
       "Bash(rm:*)",
       "Bash(del:*)",
       "Bash(move:*)",
-
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(findstr -i \"fastapi sqlmodel\")",
+      "Bash(taskkill /PID 15824 /F)",
+      "Bash(curl -X GET http://127.0.0.1:8000/health)",
+      "Bash(curl -X GET http://127.0.0.1:8000/docs)",
+      "Bash(curl -X GET http://127.0.0.1:8000)",
+      "Bash(findstr /S /I \"postgresql\" srcbackend*.py)",
+      "Bash(findstr .py)",
+      "Bash(curl -X GET http://127.0.0.1:8000/api/admin/tasks -H \"Authorization: Bearer admin_token\")",
+      "Bash(curl -X POST http://127.0.0.1:8000/api/admin/chat -H \"Content-Type: application/json\" -H \"Authorization: Bearer admin_token\" -d \"{\"\"message\"\":\"\"What tasks do I have?\"\"}\")",
+      "Bash(curl -X POST http://127.0.0.1:8000/api/admin/chat -H \"Content-Type: application/json\" -H \"Authorization: Bearer admin_token\" -d \"{\"\"message\"\":\"\"Add a task to buy groceries\"\"}\")",
+      "Bash(curl -X POST http://127.0.0.1:8000/api/admin/chat -H \"Content-Type: application/json\" -H \"Authorization: Bearer admin_token\" -d \"{\"\"message\"\":\"\"What tasks do I have now?\"\"}\")"
     ]
   }
 }

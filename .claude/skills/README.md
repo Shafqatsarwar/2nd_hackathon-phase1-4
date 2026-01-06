@@ -1,76 +1,55 @@
-# Hackathon II Todo Evolution Skill
+# Phase IV Kubernetes Deployment Skills
 
-This skill implements the "The Evolution of Todo" hackathon requirements, supporting the progression from CLI app to cloud-native AI system.
+This directory contains the skills needed to complete Phase IV of the "Evolution of Todo" project: Local Kubernetes Deployment.
 
-## Overview
+## Skills Overview
 
-The skill supports the following phases of the hackathon:
+### 1. Dockerize Applications (`dockerize-applications.skill.md`)
+Dockerizes the frontend and backend applications following immutability principles and environment-based configuration.
 
-- **Phase I**: In-Memory Python Console App
-- **Phase II**: Full-Stack Web Application
-- **Phase III**: AI-Powered Todo Chatbot
-- **Phase IV**: Local Kubernetes Deployment
-- **Phase V**: Advanced Cloud Deployment
+### 2. Create Helm Charts (`create-helm-charts.skill.md`)
+Creates declarative Kubernetes deployment manifests using Helm charts for consistent, repeatable deployments.
 
-## Constitution Compliance
+### 3. Setup Minikube (`setup-minikube.skill.md`)
+Sets up a local Kubernetes cluster for development and testing of the deployment.
 
-This skill enforces the Spec-Driven Development (SDD) workflow:
-- **Specify** → **Plan** → **Tasks** → **Implement**
-- All code must be generated via Claude Code from validated specs
-- No manual code editing allowed in `src/` directory
+### 4. Use kubectl-ai and kagent (`use-kubectl-ai-kagent.skill.md`)
+Leverages AI-assisted Kubernetes operations for intelligent cluster management and optimization.
 
-## Commands
+### 5. Use Docker AI Agent (Gordon) (`use-docker-ai-gordon.skill.md`)
+Utilizes AI-assisted Docker operations for optimized container creation and management.
 
-### `create-project-structure`
-Creates the required project structure for the hackathon.
+### 6. Deploy to Kubernetes (`deploy-to-kubernetes.skill.md`)
+Executes the complete deployment process and validates the cloud-native application.
 
-### `create-specification`
-Creates a specification file following SDD principles.
-- `feature_name`: Name of the feature to specify
-- `content`: Content of the specification
+## Execution Order
 
-### `create-plan`
-Creates an implementation plan.
-- `feature_name`: Name of the feature to plan
-- `plan_content`: Content of the implementation plan
+To complete Phase IV, execute the skills in this sequence:
 
-### `create-tasks`
-Creates a task breakdown for implementation.
-- `feature_name`: Name of the feature to break into tasks
-- `tasks`: List of tasks to create
+1. `dockerize-applications.skill.md` - Containerize the applications
+2. `use-docker-ai-gordon.skill.md` - Optimize Docker operations with AI
+3. `create-helm-charts.skill.md` - Prepare declarative deployment manifests
+4. `setup-minikube.skill.md` - Establish local Kubernetes environment
+5. `use-kubectl-ai-kagent.skill.md` - Configure AI-assisted Kubernetes operations
+6. `deploy-to-kubernetes.skill.md` - Execute and validate the deployment
 
-### `execute-phase`
-Executes a specific phase following SDD workflow.
-- `phase`: Name of the phase to execute (Phase I, Phase II, etc.)
+## Success Criteria
 
-### `validate-spec-compliance`
-Validates that the project follows SDD constitution.
+Following these skills will satisfy the Phase IV requirements:
+- ✅ Prove the system is cloud-native, not cloud-hosted
+- ✅ Containers are immutable
+- ✅ Config via environment variables
+- ✅ Infrastructure defined declaratively
+- ✅ Dockerized frontend & backend
+- ✅ Helm charts for deployment
+- ✅ Multi-replica readiness
+- ✅ Local cluster deployment
+- ✅ No hardcoded service URLs
+- ✅ No local filesystem dependencies
+- ✅ Kubernetes is source of truth
+- ✅ System survives pod restarts with zero data loss
 
-### `get-phase-requirements`
-Gets requirements for a specific phase.
-- `phase`: Name of the phase to get requirements for
+## Reference Documents
 
-## Usage Example
-
-```python
-from skills.hackathon_todo_skill import HackathonTodoSkill
-
-skill = HackathonTodoSkill()
-skill.create_project_structure()
-skill.execute_phase("Phase I")
-```
-
-## Technology Stack
-
-- Python 3.13+
-- Claude Code
-- Spec-Kit Plus
-- Next.js 16+ (from Phase II)
-- FastAPI (from Phase II)
-- SQLModel (from Phase II)
-- Neon Serverless PostgreSQL (from Phase II)
-- Better Auth (from Phase II)
-- OpenAI Agents SDK (from Phase III)
-- Official MCP SDK (from Phase III)
-- Docker, Kubernetes, Helm (from Phase IV)
-- Kafka, Dapr (from Phase V)
+- [Phase IV Constitution](../../.specify/memory/📜 CONSTITUTION-Hackathon II - Phase IV — Local Kubernetes Deployment.md)
+- [Main Project Spec](../../.specify/memory/Hackathon II - Todo Spec-Driven Development.md)

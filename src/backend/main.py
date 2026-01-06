@@ -74,7 +74,7 @@ def on_startup():
             admin_user = User(id=admin_id, email=admin_email, full_name="Admin")
             session.add(admin_user)
             session.commit()
-            print(f"✅ Admin user seeded: {admin_email}")
+            print(f"[SUCCESS] Admin user seeded: {admin_email}")
 
 # Configure CORS
 app.add_middleware(
