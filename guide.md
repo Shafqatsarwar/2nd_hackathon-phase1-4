@@ -314,6 +314,113 @@ This project follows strict **Agentic Development** principles.
 *   **Security**: Use path/JWT based user isolation in all API endpoints.
 ---
 
+## 🚀 Phase IV: Kubernetes Deployment
+
+This section covers the cloud-native deployment of the Todo application using Docker containers and Helm charts.
+
+### Prerequisites
+- **Docker Desktop** with Kubernetes enabled (or Minikube)
+- **Helm 3.x**
+- **kubectl**
+- **Node.js 18+** (for local development)
+- **Python 3.12+** (for local development)
+- **uv** package manager for Python
+
+### Containerization
+
+The project includes Dockerfiles for both frontend and backend:
+- `Dockerfile.backend` - For the Python FastAPI backend
+- `Dockerfile.frontend` - For the Next.js frontend
+
+Build the images:
+```bash
+# Build backend image
+docker build -f Dockerfile.backend -t todo-backend:latest .
+
+# Build frontend image
+docker build -f Dockerfile.frontend -t todo-frontend:latest .
+```
+
+### Local Testing with Docker Compose
+
+A `docker-compose.yml` file is provided for local testing:
+```bash
+# Start the full application stack
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the stack
+docker-compose down
+```
+
+### Kubernetes Deployment with Helm
+
+The Helm chart is located in the `helm-chart/` directory:
+
+```bash
+# Navigate to the helm chart directory
+cd helm-chart
+
+# Install the release
+helm install todo-release .
+
+# Check the status
+helm status todo-release
+
+# View all resources
+kubectl get all
+```
+
+### Helm Chart Configuration
+
+The `values.yaml` file contains all configurable parameters. Override values during installation:
+```bash
+helm install todo-release . \
+  --set replicaCount=3 \
+  --set backend.env.DATABASE_URL="your-database-url"
+```
+
+### Verification
+
+Check all pods, services, and deployments:
+```bash
+kubectl get pods
+kubectl get services
+kubectl get deployments
+
+# View pod logs
+kubectl logs -l app=todo-backend
+kubectl logs -l app=todo-frontend
+
+# Port forward to access services locally
+kubectl port-forward svc/todo-release-frontend-service 3000:3000
+kubectl port-forward svc/todo-release-backend-service 8000:8000
+```
+
+### AI-Assisted Kubernetes Operations
+
+Use kubectl-ai and kagent for intelligent Kubernetes operations:
+```bash
+# Deploy with specific replica count
+kubectl-ai "deploy the todo frontend with 2 replicas"
+
+# Analyze cluster health
+kagent "analyze the cluster health"
+
+# Optimize resource allocation
+kagent "optimize resource allocation"
+```
+
+### Multi-Replica Testing
+
+Scale deployments to test multi-replica functionality:
+```bash
+kubectl scale deployment todo-release-backend --replicas=3
+kubectl scale deployment todo-release-frontend --replicas=2
+```
+
 ## 📤 Pushing to GitHub
 
 1. **Create Repository**: Go to GitHub and create a new repository (e.g., `evolution-of-todo`).
@@ -321,10 +428,10 @@ This project follows strict **Agentic Development** principles.
 2. **Push Code**:
    ```powershell
    git add .
-   git commit -m "Initial commit"
+   git commit -m "Phase IV: Kubernetes Deployment with Docker and Helm"
    git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
    git branch -M master
    git push -u origin master
    ```
 
-3. **Next Steps**: After pushing, you can deploy to Vercel (see deployment section above).
+3. **Next Steps**: After pushing, you can deploy to Vercel or Kubernetes (see deployment sections above).
