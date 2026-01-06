@@ -1,120 +1,103 @@
-# The Evolution of Todo
+# 2nd_hackathon-phase1-4
 
-This project documents the complete evolution of a Todo application from a simple local CLI to a cloud-native, full-stack web system with AI capabilities. This **Product Architect** demonstration showcases three complete phases built strictly using Agentic Dev Stack principles.
+## The Evolution of Todo - From CLI to Full-Stack Cloud-Native AI System
 
-## 📜 Constitution & Rules
-All development is governed by the [Constitution](./constitution.md) and tracked in the `.specify/memory/` folder.
-- **Mandate**: No manual coding allowed. All code is generated via Specs and Plans.
-- **Structure**:
-  - `.specify/memory/`: Memory files for Claude Code context.
-  - `.specify/history/`: Prompt History Records (PHR) and ADRs.
-  - `specs/`: Feature specifications and architectural plans.
-  - `src/`: Verified source code.
+This repository contains the "The Evolution of Todo" project, implementing a todo application that evolves from a simple CLI tool to a full-stack web application with AI capabilities. This project follows the Agentic Dev Stack workflow: Write spec → Generate plan → Break into tasks → Implement via Claude Code.
 
-## 🚀 Phases
+## Project Overview
 
-### Phase I: In-Memory Python CLI
-A command-line tool for managing tasks in local memory.
-- **Run**: `uv run src/cli/main.py`
-- **Package Manager**: UV
+The project evolves through multiple phases:
 
-### Phase II: Full-Stack Web App (FastAPI + Next.js)
-A multi-user system with persistent storage (Neon PostgreSQL) and JWT Authentication (Better Auth).
-- **Backend**: Python FastAPI + SQLModel (Port 800).
-- **Frontend**: Next.js 16+ (App Router, Port 3000).
-- **Deployment**: Unified Vercel deployment (frontend + backend combined).
-- **Setup**: See [guide.md](./guide.md) for detailed instructions.
+- **Phase I**: In-Memory Python Console App
+- **Phase II**: Full-Stack Web Application (Next.js + FastAPI)
+- **Phase III**: AI-Powered Todo Chatbot
+- **Phase IV**: Local Kubernetes Deployment (Current Focus)
+- **Phase V**: Advanced Cloud Deployment
 
-### Phase III: AI-Powered Todo Chatbot (In Progress)
-An AI chatbot interface using OpenAI Agents SDK and MCP (Model Context Protocol) server architecture.
-- **Frontend**: OpenAI ChatKit with beautiful chat interface at `/chat`.
-- **Backend**: Python FastAPI + OpenAI Agents SDK with MCP tools (currently relying on a placeholder MCP layer for compatibility).
-- **MCP Server**: Lightweight stub that mirrors the expected `modelcontextprotocol` 1.0+ API until the official SDK can be wired in.
-- **Features**: Natural language task management (add, list, complete, delete, update); the chat UI already forwards requests to `/api/{user_id}/chat`, but the agent tooling still awaits the upstream MCP server integration.
-- **State**: Use the `guest_token`, `admin_token`, or a Better Auth-issued JWT via `/auth` when exercising `/api/{user_id}` routes in Swagger. Refer to `guide.md` for deployment steps and `history/prompts/phase-iii` for the latest spec-driven updates.
+## Features
 
-### Intermediate & Advanced Features (Planned)
-- **Intermediate**: Priorities, Tags, Search, Filter, Sort (see `specs/intermediate-features/`)
-- **Advanced**: Recurring Tasks, Due Dates & Reminders (see `specs/advanced-features/`)
+### Core Todo Functionality
+- Add, View, Update, Delete tasks
+- Mark tasks as complete/incomplete
+- User authentication and authorization
 
-## 📁 Repository Structure
-```text
-.
-├── api/
-│   └── index.py               # Vercel serverless entry point (bridges to backend)
-├── .claude/                   # Claude Code MCP configuration
-│   ├── mcp-config.json        # MCP tools for Better Auth
-│   ├── project-config.json    # Project configuration for Claude
-│   └── settings.json          # Claude Code settings
-├── .specify/                  # Claude Code memory and history
-│   ├── memory/                # Current context for Claude
-│   └── history/               # Prompt History Records (PHR) and ADRs
-├── specs/                     # SDD Specifications
-│   ├── 001-add-task/          # Phase I: Add Task feature
-│   ├── phase-ii-architecture/ # Phase II: Architecture specifications
-│   ├── phase-iii-ai-chatbot/  # Phase III: AI Chatbot specifications
-│   ├── intermediate-features/ # Intermediate features specifications
-│   └── advanced-features/     # Advanced features specifications
-├── src/
-│   ├── cli/                   # Phase I CLI App
-│   ├── backend/               # Phase II FastAPI service
-│   └── frontend/              # Phase II Next.js application
-├── vercel.json                # Vercel routing configuration
-├── constitution.md            # Governing Rules
-├── CLAUDE.md                  # Claude Code instructions
-├── guide.md                   # Setup and deployment guide
-└── pyproject.toml             # Project Workspace
-```
+### Advanced Features
+- Priority management
+- Recurring tasks
+- AI-powered analysis and sentiment detection
+- Web search capabilities
+- Chat history functionality
+- MCP (Model Context Protocol) server integration
 
-## 🚀 Deployment Architecture
+### Cloud-Native Features (Phase IV)
+- Dockerized frontend and backend applications
+- Helm charts for Kubernetes deployment
+- Multi-replica readiness
+- Local cluster deployment with Minikube
+- AI-assisted operations with kubectl-ai and kagent
+- Docker AI Agent (Gordon) integration
 
-This project uses a **unified deployment** approach on Vercel:
-- **Frontend & Backend Combined**: Both deployed as a single Vercel application
-- **`api/index.py`**: Bridges Vercel serverless functions to FastAPI backend
-- **`vercel.json`**: Routes `/api/*` requests to Python backend, all other routes to Next.js
-- **Result**: Single URL serves both frontend UI and backend API
+## Tech Stack
 
-**Live Endpoints** (after deployment):
-- Frontend: `https://your-app.vercel.app`
-- Backend API: `https://your-app.vercel.app/api/*`
-- API Docs: `https://your-app.vercel.app/docs`
+- **Frontend**: Next.js 16+ (App Router)
+- **Backend**: Python FastAPI
+- **ORM**: SQLModel
+- **Database**: Neon Serverless PostgreSQL
+- **Authentication**: Better Auth (JWT-based)
+- **AI Integration**: OpenAI Agents SDK, MCP Server
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (Minikube)
+- **Package Management**: uv
 
-## 🤖 MCP Integration
+## API Endpoints (Phase II+)
 
-This project includes Model Context Protocol (MCP) integration for Claude Code:
-- **Better Auth MCP Tools**: Pre-configured tools for authentication operations
-- **Project Context**: Claude Code understands the project structure and specifications
-- **Enhanced Development**: Claude can interact with authentication system directly
+- `GET /api/{user_id}/tasks` - List all tasks
+- `POST /api/{user_id}/tasks` - Create a new task
+- `GET /api/{user_id}/tasks/{id}` - Get task details
+- `PUT /api/{user_id}/tasks/{id}` - Update a task
+- `DELETE /api/{user_id}/tasks/{id}` - Delete a task
+- `PATCH /api/{user_id}/tasks/{id}/complete` - Toggle completion
+- `POST /api/{user_id}/chat` - AI chatbot endpoint
+- `GET /api/{user_id}/chat/history` - Chat history
 
-## 📋 Deployment Checklist
+## Development Workflow
 
-See [VERCEL_DEPLOYMENT_CHECKLIST.md](./VERCEL_DEPLOYMENT_CHECKLIST.md) for a complete checklist before deploying to Vercel.
+1. Create specification in `/specs/`
+2. Generate plan based on specification
+3. Break plan into tasks
+4. Implement via Claude Code
+5. No manual editing of generated source code in `src/`
 
-## 🚀 Quick Deployment to Vercel
+## Environment Configuration
 
-1. **Push to GitHub**:
-   ```bash
-   git add .
-   git commit -m "Ready for Vercel deployment"
-   git push origin main
-   ```
+- Database configuration via `DATABASE_URL`
+- Authentication via `BETTER_AUTH_SECRET`
+- Backend URL via `NEXT_PUBLIC_BACKEND_URL`
+- Auth URL via `NEXT_PUBLIC_BETTER_AUTH_URL`
+- OpenAI API key via `OPENAI_API_KEY`
 
-2. **Deploy to Vercel**:
-   - Go to [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Configure as Next.js project with root directory `./`
-   - Add environment variables (see guide.md)
+## Deployment
 
-3. **Set Environment Variables**:
-   - `DATABASE_URL`: Neon PostgreSQL connection string
-   - `BETTER_AUTH_SECRET`: 32+ character random string
-   - `NEXT_PUBLIC_BACKEND_URL`: `https://your-app.vercel.app` (rewrites add `/api`, so including `/api` is optional)
-   - `NEXT_PUBLIC_BETTER_AUTH_URL`: `https://your-app.vercel.app`
-   - `OPENAI_API_KEY`: OpenAI API key for Phase III AI chatbot functionality
+The application is designed for deployment to Vercel with the backend API running on FastAPI.
 
-4. **Verify Deployment**:
-   - Frontend: `https://your-app-name.vercel.app`
-   - API Health: `https://your-app-name.vercel.app/api/health`
-   - API Docs: `https://your-app-name.vercel.app/docs`
+## Compliance with Constitution
 
-See [guide.md](./guide.md) for complete deployment instructions.
+- All development starts with specification
+- No manual code editing in `src/` directory
+- Uses Claude Code and Spec-Kit Plus as primary tools
+- Follows the Agentic Dev Stack workflow
+
+## Repository Structure
+
+- `/specs` - Feature specifications and architectural plans
+- `/src` - Verified source code
+- `/src/cli` - Phase I: In-Memory Python CLI App
+- `/src/backend` - Phase II+: Python FastAPI service
+- `/src/frontend` - Phase II+: Next.js application
+- `/api/index.py` - Vercel serverless entry point
+- `/history` - Prompt History Records (PHR) and ADRs
+- `.claud/skills` - Skills for Phase IV (Kubernetes deployment)
+
+## License
+
+This project is part of the Panaversity Hackathon curriculum.
