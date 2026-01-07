@@ -66,7 +66,18 @@
       "Bash(git config user.email \"shafqatsarwar@example.com\")",
       "Bash(git commit -m \"Phase IV: Complete MCP Server Integration with GitHub Tools and Deployment Setup\n\n- Implemented GitHub MCP tools integration with full functionality\n- Added GitHub tools: create issues, PRs, gists, list operations\n- Created automated deployment script with comprehensive documentation\n- Set up CI/CD pipeline with GitHub Actions\n- Updated environment configurations for secure deployments\n- Prepared complete deployment guides and summaries\n- Verified local testing with all components working\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
       "Bash(git push origin main)",
-      "Bash(git remote set-url origin https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git)"
+      "Bash(git remote set-url origin https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git)",
+      "Bash(git commit --amend -m \"Phase IV: Complete MCP Server Integration with GitHub Tools and Deployment Setup\n\n- Implemented GitHub MCP tools integration with full functionality\n- Added GitHub tools: create issues, PRs, gists, list operations\n- Created automated deployment script with comprehensive documentation\n- Set up CI/CD pipeline with GitHub Actions\n- Updated environment configurations for secure deployments\n- Prepared complete deployment guides and summaries\n- Verified local testing with all components working\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
+      "Bash(npm install)",
+      "Bash(cat package.json)",
+      "Bash(npm run dev)",
+      "Bash(npx next dev)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3001/)",
+      "Bash(curl -s http://localhost:3001/chat)",
+      "Bash(curl -s http://localhost:8000/docs)",
+      "Bash(git remote remove origin)",
+      "Bash(git remote add origin https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git)"
     ]
   }
 }

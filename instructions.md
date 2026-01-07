@@ -1,212 +1,154 @@
-# Phase IV: Docker, Kubernetes, and GitHub MCP Setup Instructions
+# Instructions for Docker and Kubernetes Deployment
 
-This document provides comprehensive instructions for setting up Docker, Kubernetes, and GitHub MCP integration for the Phase IV deployment of the "Evolution of Todo" project.
+This document provides instructions for deploying the Todo application using Docker and Kubernetes.
 
-## Section 1: Docker and Kubernetes Setup
+## Docker Setup
 
 ### Prerequisites
+- Docker Desktop or Docker Engine
+- Docker Compose (for local testing)
 
-- Docker Desktop or Docker Engine installed
-- Minikube installed
-- kubectl installed
-- Helm installed
-- Node.js 18+ installed
-- Python 3.12+ installed
+### Building Docker Images
 
-### Docker Setup
+1. **Build Backend Image:**
+   ```bash
+   docker build -f Dockerfile.backend -t todo-backend:latest .
+   ```
 
-#### 1. Build Docker Images
+2. **Build Frontend Image:**
+   ```bash
+   docker build -f Dockerfile.frontend -t todo-frontend:latest .
+   ```
 
-First, build the Docker images for both frontend and backend:
+### Running with Docker Compose
 
-```bash
-# Build backend image
-docker build -f Dockerfile.backend -t todo-backend:latest .
+1. **Set up environment variables:**
+   ```bash
+   export DATABASE_URL="your_database_url"
+   export BETTER_AUTH_SECRET="your_auth_secret"
+   export OPENAI_API_KEY="your_openai_key"
+   export GITHUB_TOKEN="your_github_token"
+   export GITHUB_OWNER="your_github_username"
+   export GITHUB_REPO="your_repository_name"
+   ```
 
-# Build frontend image
-docker build -f Dockerfile.frontend -t todo-frontend:latest .
-```
+2. **Start the application:**
+   ```bash
+   docker-compose up -d
+   ```
 
-#### 2. Test Docker Images Locally
+3. **Check the logs:**
+   ```bash
+   docker-compose logs -f
+   ```
 
-You can test the Docker images using docker-compose:
+## Kubernetes Setup
 
-```bash
-# Start the full application stack
-docker-compose up --build
+### Prerequisites
+- Kubernetes cluster (Minikube, Docker Desktop with Kubernetes, or cloud provider)
+- Helm 3.x
+- kubectl
 
-# Access the application:
-# - Frontend: http://localhost:3000
-# - Backend: http://localhost:8000
-# - Backend API docs: http://localhost:8000/docs
-```
+### Deploying to Kubernetes
 
-### Kubernetes Setup
+1. **Set up environment variables:**
+   ```bash
+   export DATABASE_URL="your_database_url"
+   export BETTER_AUTH_SECRET="your_auth_secret"
+   export OPENAI_API_KEY="your_openai_key"
+   export GITHUB_TOKEN="your_github_token"
+   export GITHUB_OWNER="your_github_username"
+   export GITHUB_REPO="your_repository_name"
+   ```
 
-#### 1. Start Minikube
+2. **Create Kubernetes secrets:**
+   ```bash
+   kubectl create secret generic todo-app-secrets \
+     --from-literal=DATABASE_URL="$DATABASE_URL" \
+     --from-literal=BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" \
+     --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
+     --from-literal=GITHUB_TOKEN="$GITHUB_TOKEN" \
+     --from-literal=GITHUB_OWNER="$GITHUB_OWNER" \
+     --from-literal=GITHUB_REPO="$GITHUB_REPO"
+   ```
 
-```bash
-# Start Minikube cluster
-minikube start
+3. **Deploy using Helm:**
+   ```bash
+   cd helm-chart
+   helm install todo-release .
+   ```
 
-# Verify cluster is running
-kubectl cluster-info
-```
+4. **Check deployment status:**
+   ```bash
+   kubectl get pods
+   kubectl get services
+   kubectl rollout status deployment/todo-release-backend
+   kubectl rollout status deployment/todo-release-frontend
+   ```
 
-#### 2. Install Helm Chart
+### Scaling the Application
 
-```bash
-# Navigate to the helm chart directory
-cd helm-chart
+1. **Scale backend replicas:**
+   ```bash
+   kubectl scale deployment todo-release-backend --replicas=3
+   ```
 
-# Install the Helm chart
-helm install todo-app . --set backend.image.tag=latest --set frontend.image.tag=latest
+2. **Scale frontend replicas:**
+   ```bash
+   kubectl scale deployment todo-release-frontend --replicas=2
+   ```
 
-# Verify installation
-kubectl get pods
-kubectl get services
-```
+### Accessing the Application
 
-#### 3. Access the Application
+1. **Port forward to access locally:**
+   ```bash
+   kubectl port-forward svc/todo-release-frontend-service 3000:3000
+   kubectl port-forward svc/todo-release-backend-service 8000:8000
+   ```
 
-```bash
-# Port forward the frontend service
-kubectl port-forward service/todo-frontend-service 3000:3000
+2. **Check service endpoints:**
+   ```bash
+   kubectl get svc todo-release-frontend-service
+   kubectl get svc todo-release-backend-service
+   ```
 
-# Or use Minikube tunnel for external access
-minikube tunnel
-```
+### Updating the Deployment
 
-### Configuration
+1. **Update Helm values:**
+   Edit `helm-chart/values.yaml` with new image tags or configurations
 
-#### Environment Variables
-
-The application is configured via environment variables in the Helm chart values:
-
-- `NEXT_PUBLIC_BACKEND_URL`: URL for the backend API
-- `NEXT_PUBLIC_BETTER_AUTH_URL`: URL for Better Auth
-- `DATABASE_URL`: PostgreSQL connection string
-- `BETTER_AUTH_SECRET`: Secret key for authentication
-- `OPENAI_API_KEY`: OpenAI API key for AI features
-
-These are configured in `helm-chart/values.yaml`.
+2. **Upgrade the release:**
+   ```bash
+   cd helm-chart
+   helm upgrade todo-release .
+   ```
 
 ### Troubleshooting
 
-#### Common Issues
-
-1. **ImagePullBackOff**: Make sure Docker images are built locally before deploying to Kubernetes
-2. **Service unavailable**: Check that all pods are running with `kubectl get pods`
-3. **Database connection errors**: Verify PostgreSQL is running and accessible
-
-#### Useful Commands
-
-```bash
-# Check pod status
-kubectl get pods
-
-# View pod logs
-kubectl logs -l app=todo-backend
-kubectl logs -l app=todo-frontend
-
-# Check service endpoints
-kubectl get services
-
-# Scale deployments
-kubectl scale deployment todo-backend --replicas=3
-kubectl scale deployment todo-frontend --replicas=2
-
-# Update Helm deployment
-helm upgrade todo-app .
-
-# Uninstall Helm release
-helm uninstall todo-app
-```
-
-### Deployment Notes
-
-- The application is designed to be cloud-native with immutable containers
-- All configuration is done via environment variables (no hardcoded values)
-- The system supports multi-replica deployments for scalability
-- Kubernetes is the source of truth for infrastructure
-- The application survives pod restarts with zero data loss
-
-## Section 2: GitHub MCP Integration
-
-### Getting GitHub Personal Access Token
-
-#### Step 1: Open GitHub in Your Browser
-- Open your web browser and go to [https://github.com](https://github.com)
-- Sign in to your GitHub account
-
-#### Step 2: Access Your Profile Settings
-1. Look for your profile picture in the **top-right corner** of the page
-2. Click on the profile picture to open the dropdown menu
-3. From the dropdown menu, click on **"Settings"**
-
-#### Step 3: Navigate to Developer Settings
-1. On the Settings page, look at the **left sidebar**
-2. Scroll down until you see **"Developer settings"** at the bottom of the sidebar
-3. Click on **"Developer settings"**
-
-#### Step 4: Access Personal Access Tokens
-1. Under Developer settings, you'll see several options
-2. Click on **"Personal access tokens"**
-3. Then click on **"Tokens (classic)"**
-
-#### Step 5: Generate New Token
-1. Click the **"Generate new token"** button
-2. Select **"Generate new token (classic)"** from the submenu
-
-#### Step 6: Fill in Token Details
-1. In the **"Note"** field, type a name for your token (e.g., "Todo App Token")
-2. Select an expiration date from the dropdown (e.g., "30 days", "90 days", or "No expiration")
-3. In the **"Select scopes"** section, check these boxes:
-   - ✅ **repo** (Full control of private repositories)
-   - ✅ **gist** (Create gists)
-   - ✅ **read:org** (Read org and team membership)
-
-#### Step 7: Generate the Token
-1. Scroll down to the bottom of the page
-2. Click the **"Generate token"** button (green button)
-
-#### Step 8: Copy Your Token
-1. **Important**: You'll see your new token displayed on the screen
-2. **Immediately copy the token** - you won't be able to see it again!
-3. The token will look like a long string starting with `ghp_` followed by random characters
-
-#### Step 9: Configure Your Application
-1. Open your project's `.env` file in the `src/backend/` directory
-2. Add this line to the file:
-   ```
-   GITHUB_TOKEN=your_copied_token_here
-   ```
-3. Also add:
-   ```
-   GITHUB_OWNER=your_github_username
-   GITHUB_REPO=your_repository_name
+1. **Check pod logs:**
+   ```bash
+   kubectl logs -l app=todo-backend
+   kubectl logs -l app=todo-frontend
    ```
 
-#### Step 10: Save and Secure
-1. Save the `.env` file
-2. Make sure your `.gitignore` file prevents the `.env` file from being committed to Git
+2. **Describe pods for details:**
+   ```bash
+   kubectl describe pod <pod-name>
+   ```
 
-**⚠️ Warning**: Never share this token publicly or commit it to a repository. Keep it secure!
+3. **Check events:**
+   ```bash
+   kubectl get events --sort-by=.metadata.creationTimestamp
+   ```
 
-### GitHub MCP Integration Features
+### Cleanup
 
-The project now includes GitHub integration through Model Context Protocol (MCP) tools. This allows the AI assistant to interact with GitHub repositories directly.
+1. **Uninstall Helm release:**
+   ```bash
+   helm uninstall todo-release
+   ```
 
-#### Available GitHub Tools:
-- Create GitHub issues
-- List GitHub issues
-- Create GitHub pull requests
-- Get repository information
-- List repository contents
-- Create GitHub gists
-
-The AI assistant can now handle requests like:
-- "Create a GitHub issue about the login bug"
-- "List all open issues in the repository"
-- "Create a pull request for the new feature"
-- "Show me the contents of the src directory"
+2. **Delete secrets:**
+   ```bash
+   kubectl delete secret todo-app-secrets
+   ```
