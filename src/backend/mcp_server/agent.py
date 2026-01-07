@@ -4,6 +4,8 @@ import json
 import os
 from .task_tools import MCPTaskTools
 from .github_tools import GitHubMCPTools, GITHUB_TOOLS
+from .web_search import search_web
+from .weather_service import get_weather_info, get_weather_forecast
 from ..database import get_session
 from sqlmodel import Session
 
@@ -112,6 +114,53 @@ class TodoOpenAIAgent:
         # Add GitHub tools to the agent
         self.tools.extend(GITHUB_TOOLS)
 
+        # Add web search tool to the agent
+        self.tools.append({
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "description": "Search the web for current information, news, market rates, and other public information",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Search query for information"}
+                    },
+                    "required": ["query"]
+                }
+            }
+        })
+
+        # Add weather tools to the agent
+        self.tools.append({
+            "type": "function",
+            "function": {
+                "name": "get_current_weather",
+                "description": "Get current weather information for a specific location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {"type": "string", "description": "Location to get weather for (e.g., 'Lahore, Pakistan', 'Karachi', 'Islamabad')"}
+                    },
+                    "required": ["location"]
+                }
+            }
+        })
+
+        self.tools.append({
+            "type": "function",
+            "function": {
+                "name": "get_weather_forecast",
+                "description": "Get weather forecast for a specific location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {"type": "string", "description": "Location to get forecast for (e.g., 'Lahore, Pakistan', 'Karachi', 'Islamabad')"}
+                    },
+                    "required": ["location"]
+                }
+            }
+        })
+
     def process_message(self, user_id: str, message: str, session: Session) -> str:
         """
         Process a user message using OpenAI agent with MCP tools
@@ -124,9 +173,10 @@ class TodoOpenAIAgent:
             {
                 "role": "system",
                 "content": (
-                    "You are a helpful assistant that can manage todos and interact with GitHub. "
+                    "You are a helpful assistant that can manage todos, interact with GitHub, and search the web for current information. "
                     "Help users manage their tasks using the provided tools. "
                     "You can also help with GitHub operations like creating issues, pull requests, and gists. "
+                    "Additionally, you can search the web for current information like weather, news, market rates, and public information. "
                     "Always use the appropriate tool for the user's request. "
                     "Only use the tools provided, do not try to access the database directly. "
                     f"The current user ID is: {user_id}"
@@ -247,6 +297,12 @@ class TodoOpenAIAgent:
                         files=function_args["files"],
                         public=function_args.get("public", True)
                     )
+                elif function_name == "web_search":
+                    result = search_web(query=function_args["query"])
+                elif function_name == "get_current_weather":
+                    result = get_weather_info(location=function_args["location"])
+                elif function_name == "get_weather_forecast":
+                    result = get_weather_forecast(location=function_args["location"])
                 else:
                     result = {"error": f"Unknown tool: {function_name}"}
 

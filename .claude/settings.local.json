@@ -77,7 +77,15 @@
       "Bash(curl -s http://localhost:3001/chat)",
       "Bash(curl -s http://localhost:8000/docs)",
       "Bash(git remote remove origin)",
-      "Bash(git remote add origin https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git)"
+      "Bash(git remote add origin https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git)",
+      "Bash(git commit -m \"Clean up documentation and secure configurations for deployment\n\n- Updated instructions.md with Docker and Kubernetes deployment instructions\n- Removed unnecessary markdown files\n- Ensured all sensitive data is properly configured with environment variables\n- Verified frontend \\(port 3001\\) and backend \\(port 8000\\) are running properly\n- Confirmed GitHub MCP integration is working with secure configurations\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.agent import TodoOpenAIAgent\nagent = TodoOpenAIAgent\\(\\)\nprint\\(''Available tools after web search integration:''\\)\nfor tool in agent.tools:\n    if ''function'' in tool:\n        print\\(f''- {tool[\"\"function\"\"][\"\"name\"\"]}: {tool[\"\"function\"\"][\"\"description\"\"]}''\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.web_search import search_web\nresult = search_web\\(''Pakistan solar panel market rates 2025'', max_results=3\\)\nprint\\(''Web search result sample:''\\)\nprint\\(result[:500] + ''...'' if len\\(result\\) > 500 else result\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.web_search import search_web\nresult = search_web\\(''current weather in lahore pakistan'', max_results=1\\)\nprint\\(''Weather search result:''\\)\nprint\\(result\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.web_search import search_web\nresult = search_web\\(''Lahore Pakistan weather forecast'', max_results=3\\)\nprint\\(''Weather search result:''\\)\nprint\\(result[:500]\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.agent import TodoOpenAIAgent\nagent = TodoOpenAIAgent\\(\\)\nprint\\(''Available tools after weather functionality integration:''\\)\nfor tool in agent.tools:\n    if ''function'' in tool:\n        print\\(f''- {tool[\"\"function\"\"][\"\"name\"\"]}: {tool[\"\"function\"\"][\"\"description\"\"]}''\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.weather_service import get_weather_info\nresult = get_weather_info\\(''Lahore Pakistan''\\)\nprint\\(''Current weather for Lahore, Pakistan:''\\)\nprint\\(result\\)\n\")",
+      "Bash(uv run python -c \"\nfrom src.backend.mcp_server.weather_service import get_weather_forecast\nresult = get_weather_forecast\\(''Lahore Pakistan''\\)\nprint\\(''Weather forecast for Lahore, Pakistan:''\\)\nprint\\(result\\)\n\")"
     ]
   }
 }

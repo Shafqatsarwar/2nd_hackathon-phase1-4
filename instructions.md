@@ -1,154 +1,112 @@
-# Instructions for Docker and Kubernetes Deployment
+# Docker and Kubernetes Deployment Instructions
 
-This document provides instructions for deploying the Todo application using Docker and Kubernetes.
+## Prerequisites
+- Docker Desktop/Engine with Docker Compose
+- Kubernetes cluster (Minikube/Docker Desktop with Kubernetes)
+- Helm 3.x and kubectl
+- Node.js 18+, Python 3.12+
 
-## Docker Setup
+## Docker Deployment
 
-### Prerequisites
-- Docker Desktop or Docker Engine
-- Docker Compose (for local testing)
+### 1. Build Images
+```bash
+# Build backend
+docker build -f Dockerfile.backend -t todo-backend:latest .
 
-### Building Docker Images
+# Build frontend
+docker build -f Dockerfile.frontend -t todo-frontend:latest .
+```
 
-1. **Build Backend Image:**
-   ```bash
-   docker build -f Dockerfile.backend -t todo-backend:latest .
-   ```
+### 2. Set Environment Variables
+```bash
+export DATABASE_URL="your_postgres_connection_string"
+export BETTER_AUTH_SECRET="your_32_char_secret"
+export OPENAI_API_KEY="your_openai_api_key"
+export GITHUB_TOKEN="your_github_token"
+export GITHUB_OWNER="your_github_username"
+export GITHUB_REPO="your_repository_name"
+```
 
-2. **Build Frontend Image:**
-   ```bash
-   docker build -f Dockerfile.frontend -t todo-frontend:latest .
-   ```
+### 3. Run with Docker Compose
+```bash
+# Start services
+docker-compose up -d
 
-### Running with Docker Compose
+# Check status
+docker-compose ps
 
-1. **Set up environment variables:**
-   ```bash
-   export DATABASE_URL="your_database_url"
-   export BETTER_AUTH_SECRET="your_auth_secret"
-   export OPENAI_API_KEY="your_openai_key"
-   export GITHUB_TOKEN="your_github_token"
-   export GITHUB_OWNER="your_github_username"
-   export GITHUB_REPO="your_repository_name"
-   ```
+# View logs
+docker-compose logs -f
+```
 
-2. **Start the application:**
-   ```bash
-   docker-compose up -d
-   ```
+## Kubernetes Deployment
 
-3. **Check the logs:**
-   ```bash
-   docker-compose logs -f
-   ```
+### 1. Set Environment Variables (same as above)
+```bash
+export DATABASE_URL="your_postgres_connection_string"
+export BETTER_AUTH_SECRET="your_32_char_secret"
+export OPENAI_API_KEY="your_openai_api_key"
+export GITHUB_TOKEN="your_github_token"
+export GITHUB_OWNER="your_github_username"
+export GITHUB_REPO="your_repository_name"
+```
 
-## Kubernetes Setup
+### 2. Create Kubernetes Secrets
+```bash
+kubectl create secret generic todo-app-secrets \
+  --from-literal=DATABASE_URL="$DATABASE_URL" \
+  --from-literal=BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
+  --from-literal=GITHUB_TOKEN="$GITHUB_TOKEN" \
+  --from-literal=GITHUB_OWNER="$GITHUB_OWNER" \
+  --from-literal=GITHUB_REPO="$GITHUB_REPO"
+```
 
-### Prerequisites
-- Kubernetes cluster (Minikube, Docker Desktop with Kubernetes, or cloud provider)
-- Helm 3.x
-- kubectl
+### 3. Deploy with Helm
+```bash
+# Navigate to helm chart
+cd helm-chart
 
-### Deploying to Kubernetes
+# Install release
+helm install todo-release .
 
-1. **Set up environment variables:**
-   ```bash
-   export DATABASE_URL="your_database_url"
-   export BETTER_AUTH_SECRET="your_auth_secret"
-   export OPENAI_API_KEY="your_openai_key"
-   export GITHUB_TOKEN="your_github_token"
-   export GITHUB_OWNER="your_github_username"
-   export GITHUB_REPO="your_repository_name"
-   ```
+# Check status
+kubectl get pods
+kubectl get svc
+kubectl rollout status deployment/todo-release-backend
+kubectl rollout status deployment/todo-release-frontend
+```
 
-2. **Create Kubernetes secrets:**
-   ```bash
-   kubectl create secret generic todo-app-secrets \
-     --from-literal=DATABASE_URL="$DATABASE_URL" \
-     --from-literal=BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" \
-     --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
-     --from-literal=GITHUB_TOKEN="$GITHUB_TOKEN" \
-     --from-literal=GITHUB_OWNER="$GITHUB_OWNER" \
-     --from-literal=GITHUB_REPO="$GITHUB_REPO"
-   ```
+### 4. Access Application
+```bash
+# Port forward for local access
+kubectl port-forward svc/todo-release-frontend-service 3000:3000
+kubectl port-forward svc/todo-release-backend-service 8000:8000
 
-3. **Deploy using Helm:**
-   ```bash
-   cd helm-chart
-   helm install todo-release .
-   ```
+# Or get external IPs
+kubectl get svc todo-release-frontend-service
+kubectl get svc todo-release-backend-service
+```
 
-4. **Check deployment status:**
-   ```bash
-   kubectl get pods
-   kubectl get services
-   kubectl rollout status deployment/todo-release-backend
-   kubectl rollout status deployment/todo-release-frontend
-   ```
+### 5. Scaling & Management
+```bash
+# Scale deployments
+kubectl scale deployment todo-release-backend --replicas=3
+kubectl scale deployment todo-release-frontend --replicas=2
 
-### Scaling the Application
+# Upgrade deployment
+helm upgrade todo-release .
 
-1. **Scale backend replicas:**
-   ```bash
-   kubectl scale deployment todo-release-backend --replicas=3
-   ```
+# Check logs
+kubectl logs -l app=todo-backend
+kubectl logs -l app=todo-frontend
+```
 
-2. **Scale frontend replicas:**
-   ```bash
-   kubectl scale deployment todo-release-frontend --replicas=2
-   ```
+### 6. Cleanup
+```bash
+# Uninstall Helm release
+helm uninstall todo-release
 
-### Accessing the Application
-
-1. **Port forward to access locally:**
-   ```bash
-   kubectl port-forward svc/todo-release-frontend-service 3000:3000
-   kubectl port-forward svc/todo-release-backend-service 8000:8000
-   ```
-
-2. **Check service endpoints:**
-   ```bash
-   kubectl get svc todo-release-frontend-service
-   kubectl get svc todo-release-backend-service
-   ```
-
-### Updating the Deployment
-
-1. **Update Helm values:**
-   Edit `helm-chart/values.yaml` with new image tags or configurations
-
-2. **Upgrade the release:**
-   ```bash
-   cd helm-chart
-   helm upgrade todo-release .
-   ```
-
-### Troubleshooting
-
-1. **Check pod logs:**
-   ```bash
-   kubectl logs -l app=todo-backend
-   kubectl logs -l app=todo-frontend
-   ```
-
-2. **Describe pods for details:**
-   ```bash
-   kubectl describe pod <pod-name>
-   ```
-
-3. **Check events:**
-   ```bash
-   kubectl get events --sort-by=.metadata.creationTimestamp
-   ```
-
-### Cleanup
-
-1. **Uninstall Helm release:**
-   ```bash
-   helm uninstall todo-release
-   ```
-
-2. **Delete secrets:**
-   ```bash
-   kubectl delete secret todo-app-secrets
-   ```
+# Delete secrets
+kubectl delete secret todo-app-secrets
+```

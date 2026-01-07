@@ -23,7 +23,7 @@ The project evolves through multiple phases:
 - Priority management
 - Recurring tasks
 - AI-powered analysis and sentiment detection
-- Web search capabilities
+- Real-time web search capabilities for current information (weather, news, market rates, etc.)
 - Chat history functionality
 - MCP (Model Context Protocol) server integration
 
