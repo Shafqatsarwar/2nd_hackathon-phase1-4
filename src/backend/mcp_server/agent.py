@@ -3,6 +3,7 @@ from openai import OpenAI
 import json
 import os
 from .task_tools import MCPTaskTools
+from .github_tools import GitHubMCPTools, GITHUB_TOOLS
 from ..database import get_session
 from sqlmodel import Session
 
@@ -14,10 +15,14 @@ class TodoOpenAIAgent:
 
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Initialize tools
+        self.github_tools = GitHubMCPTools()
         self.task_tools = MCPTaskTools(get_session)
 
         # Define the tools that the agent can use
         self.tools = [
+            # Task management tools
             {
                 "type": "function",
                 "function": {
@@ -104,6 +109,9 @@ class TodoOpenAIAgent:
             }
         ]
 
+        # Add GitHub tools to the agent
+        self.tools.extend(GITHUB_TOOLS)
+
     def process_message(self, user_id: str, message: str, session: Session) -> str:
         """
         Process a user message using OpenAI agent with MCP tools
@@ -116,8 +124,9 @@ class TodoOpenAIAgent:
             {
                 "role": "system",
                 "content": (
-                    "You are a helpful todo management assistant. "
+                    "You are a helpful assistant that can manage todos and interact with GitHub. "
                     "Help users manage their tasks using the provided tools. "
+                    "You can also help with GitHub operations like creating issues, pull requests, and gists. "
                     "Always use the appropriate tool for the user's request. "
                     "Only use the tools provided, do not try to access the database directly. "
                     f"The current user ID is: {user_id}"
@@ -206,6 +215,37 @@ class TodoOpenAIAgent:
                         priority=function_args.get("priority"),
                         is_recurring=function_args.get("is_recurring"),
                         recurrence_interval=function_args.get("recurrence_interval")
+                    )
+                # GitHub tool functions
+                elif function_name == "create_github_issue":
+                    result = self.github_tools.create_issue(
+                        title=function_args["title"],
+                        body=function_args.get("body", ""),
+                        labels=function_args.get("labels")
+                    )
+                elif function_name == "list_github_issues":
+                    result = self.github_tools.list_issues(
+                        state=function_args.get("state", "open"),
+                        labels=function_args.get("labels")
+                    )
+                elif function_name == "create_github_pull_request":
+                    result = self.github_tools.create_pull_request(
+                        title=function_args["title"],
+                        body=function_args.get("body", ""),
+                        head=function_args["head"],
+                        base=function_args.get("base", "main")
+                    )
+                elif function_name == "get_github_repo_info":
+                    result = self.github_tools.get_repo_info()
+                elif function_name == "list_github_repo_contents":
+                    result = self.github_tools.list_repo_contents(
+                        path=function_args.get("path", "/")
+                    )
+                elif function_name == "create_github_gist":
+                    result = self.github_tools.create_gist(
+                        description=function_args["description"],
+                        files=function_args["files"],
+                        public=function_args.get("public", True)
                     )
                 else:
                     result = {"error": f"Unknown tool: {function_name}"}

@@ -88,9 +88,10 @@ backend:
   service:
     port: 8000
   env:
-    DATABASE_URL: "postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-abcwopjg-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-    BETTER_AUTH_SECRET: "my_super_secure_hackathon_secret_key_2025"
-    OPENAI_API_KEY: "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"
+    DATABASE_URL: ""
+    BETTER_AUTH_SECRET: ""
+    OPENAI_API_KEY: ""
+  secretRef: "todo-app-secrets"
 
 frontend:
   image:
