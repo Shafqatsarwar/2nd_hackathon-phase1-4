@@ -208,6 +208,10 @@ todo.db
 *.sublime-project
 *.sublime-workspace
 
+# Claude Code settings
+.claude/settings.local-builtin.txt
+.claude/settings.local.json
+
 # Vim
 *.swp
 *.swo

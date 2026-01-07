@@ -63,7 +63,7 @@ export default function DashboardPage() {
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">Phase II</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">Phase IV</span>
                             <div className="h-[1px] w-8 bg-purple-500/30" />
                         </div>
                         <h1 className="text-5xl font-black text-white tracking-tight">

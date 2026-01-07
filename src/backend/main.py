@@ -17,7 +17,7 @@ from src.backend.database import create_db_and_tables, get_session, engine
 from src.backend.models import Task, TaskCreate, TaskUpdate, User
 from src.backend.auth_utils import verify_jwt
 
-app = FastAPI(title="The Evolution of Todo - Phase II")
+app = FastAPI(title="The Evolution of Todo - Phase IV")
 
 
 class RootResponse(BaseModel):
@@ -41,7 +41,7 @@ def custom_openapi() -> Dict[str, Any]:
     schema = get_openapi(
         title=app.title,
         version="1.0.0",
-        description="FastAPI Phase II backend for The Evolution of Todo",
+        description="FastAPI Phase IV backend for The Evolution of Todo",
         routes=app.routes,
     )
 
@@ -87,7 +87,7 @@ app.add_middleware(
 
 @app.get("/", response_model=RootResponse)
 def read_root():
-    return RootResponse(message="Welcome to Phase II Backend", status="Ready")
+    return RootResponse(message="Welcome to Phase IV Backend", status="Ready")
 
 # --- TASK CRUD ENDPOINTS ---
 
