@@ -94,6 +94,17 @@ uv run python test_github_mcp.py
 2.  Fetching repository metadata.
 3.  Listing open issues.
 
+## 🎙️ Voice-Enabled AI Chatbot (New!)
+We have integrated the **Vercel AI SDK**, **Web Speech API** (Speech-to-Text), and **Speech Synthesis** (Text-to-Speech) for a fully interactive experience.
+
+### How to use:
+1.  Navigate to the **AI Chat** page (`/chat`).
+2.  **Voice Input**: Click the 🎙️ **Microphone** icon in the input bar and speak your command (e.g., *"Create a task to buy milk"*).
+3.  **Voice Output**: Click the 🔊 **Speaker** icon on any message bubble to hear the AI's response.
+
+**Architecture Note:**
+This feature uses a "BFF" (Backend-for-Frontend) pattern. The Next.js API route (`src/frontend/app/api/chat/route.ts`) proxies requests between the Vercel AI SDK on the client and the Python FastAPI backend.
+
 ## 📂 Project Structure for Phase IV
 - `Dockerfile.backend`: Backend container spec
 - `Dockerfile.frontend`: Frontend container spec

@@ -1,32 +1,49 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useChat, Message } from "ai/react"; // Vercel AI SDK
 import { createAuthClient } from "better-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import { AnimatePresence, motion } from "framer-motion";
+import { Mic, MicOff, Send, Volume2, StopCircle, RefreshCw, User as UserIcon, Bot as BotIcon } from "lucide-react";
+import clsx from "clsx";
 import SignOutButton from "../../components/SignOutButton";
 
 const authClient = createAuthClient();
 
 export default function ChatPage() {
     const [session, setSession] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [messages, setMessages] = useState<{id: number, role: string, content: string, timestamp: Date}[]>([]);
-    const [inputMessage, setInputMessage] = useState("");
-    const [isSending, setIsSending] = useState(false);
-    const router = useRouter();
-    const messagesEndRef = useRef<null | HTMLDivElement>(null);
+    const [isListening, setIsListening] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
+    const router = useRouter();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const recognitionRef = useRef<any>(null);
+
+    // Vercel AI SDK Hook
+    const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, reload, stop } = useChat({
+        api: "/api/chat",
+        body: {
+            userId: session?.user?.id,
+            token: session?.token,
+            // Pass conversation ID if we had one persistent
+        },
+        onError: (err: Error) => {
+            console.error("Chat error:", err);
+        }
+    });
+
+    // 1. Auth Check
     useEffect(() => {
         async function init() {
-            // Check for special Admin login first
             const isAdmin = localStorage.getItem("admin_access") === "true";
             if (isAdmin) {
                 setSession({
-                    user: { id: "admin", name: "Khan Sarwar", email: "khansarwar1@hotmail.com" },
+                    user: { id: "admin", name: "Khan Sarwar", email: "admin@example.com" },
                     token: "admin_token"
                 });
-                setLoading(false);
                 return;
             }
 
@@ -36,228 +53,220 @@ export default function ChatPage() {
                 return;
             }
             setSession(data);
-            setLoading(false);
         }
         init();
     }, [router]);
 
+    // 2. Scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const handleSendMessage = async () => {
-        if (!inputMessage.trim() || !session || isSending) return;
+    // 3. Speech Recognition (STT) - Browser Native
+    const toggleListening = () => {
+        if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+            alert("Speech recognition is not supported in this browser. Try Chrome.");
+            return;
+        }
 
-        const userMessage = {
-            id: Date.now(),
-            role: "user",
-            content: inputMessage,
-            timestamp: new Date()
-        };
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+        } else {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
 
-        setMessages(prev => [...prev, userMessage]);
-        setInputMessage("");
-        setIsSending(true);
-
-        try {
-            const userId = session.user.id;
-            const token = session.token;
-
-            // Find the most recent conversation ID or use the first one if any exist
-            const conversationId = messages.length > 0 ? findConversationId() : undefined;
-
-            const response = await fetch(`/api/${userId}/chat`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    message: inputMessage,
-                    conversation_id: conversationId
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            const assistantMessage = {
-                id: Date.now() + 1,
-                role: "assistant",
-                content: data.response,
-                timestamp: new Date()
+            recognition.onstart = () => setIsListening(true);
+            recognition.onend = () => setIsListening(false);
+            recognition.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setInput((prev: string) => prev ? prev + " " + transcript : transcript);
             };
 
-            setMessages(prev => [...prev, assistantMessage]);
-        } catch (error) {
-            console.error("Error sending message:", error);
-            const errorMessage = {
-                id: Date.now() + 1,
-                role: "assistant",
-                content: "Sorry, I encountered an error processing your request. Please try again.",
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsSending(false);
+            recognitionRef.current = recognition;
+            recognition.start();
         }
     };
 
-    // Helper function to find conversation ID (in a real implementation, you'd track this properly)
-    const findConversationId = () => {
-        // This is a simplified approach - in a real app you'd track conversation IDs properly
-        return undefined; // Let the backend create a new conversation or use the most recent one
-    };
+    // 4. Text to Speech (TTS) - Browser Native
+    const speakMessage = (text: string) => {
+        if (!("speechSynthesis" in window)) return;
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            return;
         }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.onend = () => setIsSpeaking(false);
+
+        setIsSpeaking(true);
+        window.speechSynthesis.speak(utterance);
     };
 
-    if (loading) return (
+    if (!session) return (
         <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
             <div className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
         </div>
     );
 
-    const userId = session?.user.id;
-    const token = session?.token;
-
     return (
-        <div className="min-h-screen bg-neutral-950 text-slate-200 font-sans p-4 md:p-12 relative overflow-hidden">
-            {/* Background accents */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[150px] -z-10" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] -z-10" />
+        <div className="min-h-screen bg-neutral-950 text-slate-200 font-sans relative overflow-hidden flex flex-col">
+            {/* Background Effects */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] pointer-events-none" />
 
-            <div className="max-w-5xl mx-auto z-10 relative">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
+            {/* Header */}
+            <header className="px-6 py-4 border-b border-white/5 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-20 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                    <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-full transition">
+                        Dashboard
+                    </Link>
+                    <div className="h-6 w-[1px] bg-white/10" />
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">Phase IV</span>
-                            <div className="h-[1px] w-8 bg-purple-500/30" />
-                        </div>
-                        <h1 className="text-5xl font-black text-white tracking-tight">
-                            AI Todo Assistant
-                        </h1>
-                        <p className="text-slate-500 mt-2 text-lg">
-                            Chat with your AI assistant to manage tasks naturally.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="text-right hidden md:block">
-                            <p className="text-sm font-bold text-white">{session?.user.name}</p>
-                            <p className="text-xs text-slate-500">{session?.user.email}</p>
-                        </div>
-                        <SignOutButton />
-                    </div>
-                </header>
-
-                <div className="mb-8">
-                    <div className="flex space-x-4 overflow-x-auto pb-2">
-                        <Link
-                            href="/dashboard"
-                            className="px-4 py-2 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 whitespace-nowrap"
-                        >
-                            Tasks
-                        </Link>
-                        <Link
-                            href="/chat"
-                            className="px-4 py-2 rounded-lg bg-purple-600/20 border border-purple-500/30 text-purple-300 whitespace-nowrap"
-                        >
-                            AI Chat
-                        </Link>
+                        <h1 className="font-bold text-white text-lg">AI Assistant</h1>
+                        <p className="text-xs text-purple-400 font-medium tracking-wider">VOICE ENABLED</p>
                     </div>
                 </div>
+                <div className="flex items-center gap-4">
+                    <span className="hidden md:block text-sm text-slate-400">{session.user.name}</span>
+                    <SignOutButton />
+                </div>
+            </header>
 
-                <div className="grid grid-cols-1 gap-12">
-                    <section className="relative">
-                        <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-h-[60vh] max-h-[60vh] flex flex-col">
-                            <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2 scrollbar-thin scrollbar-thumb-purple-500/30 scrollbar-track-transparent">
-                                {messages.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-center text-slate-500">
-                                        <div className="mb-4">
-                                            <div className="w-16 h-16 mx-auto bg-purple-500/10 rounded-full flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <h3 className="text-xl font-bold text-white mb-2">Welcome to your AI Todo Assistant!</h3>
-                                        <p className="max-w-md">Start a conversation to manage your tasks naturally. Try commands like:</p>
-                                        <ul className="mt-3 text-left space-y-1">
-                                            <li className="text-sm">&bull; &ldquo;Add a task to buy groceries&rdquo;</li>
-                                            <li className="text-sm">&bull; &ldquo;Show me my tasks&rdquo;</li>
-                                            <li className="text-sm">&bull; &ldquo;Mark task 1 as complete&rdquo;</li>
-                                            <li className="text-sm">&bull; &ldquo;Delete the meeting task&rdquo;</li>
-                                        </ul>
-                                    </div>
-                                ) : (
-                                    messages.map((msg) => (
-                                        <div
-                                            key={msg.id}
-                                            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                                        >
-                                            <div
-                                                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                                                    msg.role === "user"
-                                                        ? "bg-purple-600/20 border border-purple-500/30 rounded-br-none"
-                                                        : "bg-neutral-800/50 border border-white/10 rounded-bl-none"
-                                                }`}
-                                            >
-                                                <div className="whitespace-pre-wrap">{msg.content}</div>
-                                                <div className={`text-xs mt-1 ${msg.role === "user" ? "text-purple-400/70" : "text-slate-500"}`}>
-                                                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                                <div ref={messagesEndRef} />
+            {/* Chat Area */}
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth">
+                <div className="max-w-3xl mx-auto space-y-6">
+                    {messages.length === 0 && (
+                        <div className="text-center py-20 opacity-50">
+                            <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <BotIcon className="w-10 h-10 text-purple-400" />
                             </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">How can I help you?</h2>
+                            <p className="text-slate-400">Manage tasks, ask questions, or check GitHub issues.</p>
+                        </div>
+                    )}
 
-                            <div className="flex gap-3">
-                                <textarea
-                                    value={inputMessage}
-                                    onChange={(e) => setInputMessage(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="Message your AI assistant..."
-                                    className="flex-1 bg-neutral-800/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent resize-none"
-                                    rows={2}
-                                    disabled={isSending}
-                                />
+                    <AnimatePresence mode="popLayout">
+                        {messages.map((m: Message) => (
+                            <motion.div
+                                key={m.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className={clsx(
+                                    "flex gap-4 items-start",
+                                    m.role === "user" ? "flex-row-reverse" : "flex-row"
+                                )}
+                            >
+                                <div className={clsx(
+                                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                                    m.role === "user" ? "bg-purple-600" : "bg-slate-700"
+                                )}>
+                                    {m.role === "user" ? <UserIcon size={16} /> : <BotIcon size={16} />}
+                                </div>
+
+                                <div className={clsx(
+                                    "group relative max-w-[80%] px-5 py-3 rounded-2xl text-sm md:text-base leading-relaxed animate-in fade-in zoom-in-95",
+                                    m.role === "user"
+                                        ? "bg-purple-600 text-white rounded-tr-none"
+                                        : "bg-neutral-800 border border-white/10 text-slate-200 rounded-tl-none shadow-sm"
+                                )}>
+                                    <div className="prose prose-invert prose-p:my-1 prose-pre:bg-black/50 prose-pre:p-2 prose-pre:rounded-lg max-w-none">
+                                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                                    </div>
+
+                                    {/* Message Actions */}
+                                    <div className={clsx(
+                                        "absolute top-full mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity",
+                                        m.role === "user" ? "right-0" : "left-0"
+                                    )}>
+                                        <button
+                                            onClick={() => speakMessage(m.content)}
+                                            className="p-1.5 text-slate-400 hover:text-white bg-black/20 rounded-full hover:bg-black/40"
+                                            title="Read aloud"
+                                        >
+                                            <Volume2 size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+
+                    {isLoading && (
+                        <div className="flex gap-4">
+                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+                                <BotIcon size={16} />
+                            </div>
+                            <div className="bg-neutral-800/50 px-5 py-4 rounded-2xl rounded-tl-none flex gap-1">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+            </main>
+
+            {/* Input Area */}
+            <footer className="p-4 md:p-6 bg-neutral-900/80 backdrop-blur-lg border-t border-white/5">
+                <div className="max-w-3xl mx-auto relative flex gap-3 items-end">
+                    <button
+                        onClick={stop}
+                        disabled={!isLoading}
+                        className={clsx(
+                            "absolute -top-14 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded-full text-xs font-medium border border-white/10 hover:bg-neutral-700 transition flex items-center gap-2",
+                            isLoading ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+                        )}
+                    >
+                        <StopCircle size={14} /> Stop Generating
+                    </button>
+
+                    <form onSubmit={handleSubmit} className="flex-1 flex gap-2 w-full">
+                        <div className="relative flex-1">
+                            <input
+                                value={input}
+                                onChange={handleInputChange}
+                                placeholder={isListening ? "Listening..." : "Message AI..."}
+                                className={clsx(
+                                    "w-full bg-neutral-800 border-2 rounded-2xl px-4 py-4 pr-12 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all",
+                                    isListening ? "border-red-500/50 animate-pulse placeholder:text-red-400" : "border-transparent focus:border-purple-500/50 text-white placeholder:text-slate-500"
+                                )}
+                            />
+
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                                 <button
-                                    onClick={handleSendMessage}
-                                    disabled={isSending || !inputMessage.trim()}
-                                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/30 disabled:cursor-not-allowed text-white px-6 rounded-xl font-medium transition-colors whitespace-nowrap flex items-center justify-center"
-                                >
-                                    {isSending ? (
-                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                    ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
+                                    type="button"
+                                    onClick={toggleListening}
+                                    className={clsx(
+                                        "p-2 rounded-xl transition-all active:scale-95",
+                                        isListening ? "bg-red-500/20 text-red-400" : "hover:bg-white/10 text-slate-400 hover:text-white"
                                     )}
+                                    title="Voice Input"
+                                >
+                                    {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                                 </button>
                             </div>
                         </div>
-                    </section>
-                </div>
 
-                <footer className="mt-24 pt-12 border-t border-white/5 text-center">
-                    <p className="text-slate-600 text-sm">
-                        Evolution of Todo &bull; AI-Powered Task Management
-                    </p>
-                </footer>
-            </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading || !input.trim()}
+                            className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:hover:bg-purple-600 text-white p-4 rounded-2xl transition-all shadow-lg shadow-purple-900/20 active:scale-95"
+                        >
+                            <Send size={20} />
+                        </button>
+                    </form>
+                </div>
+            </footer>
         </div>
     );
 }
