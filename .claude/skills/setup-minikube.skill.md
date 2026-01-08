@@ -27,11 +27,12 @@ Based on the constitution for Phase IV - Local Kubernetes Deployment:
 7. Document the setup process for reproducibility
 
 ## Files to Create/Modify
-- `scripts/minikube-setup.sh` (optional automation script)
+- `manage_phase_4.py` (Central management script for checking status)
 - `k8s/namespace.yaml` (Kubernetes namespace configuration)
 - `k8s/storage.yaml` (Persistent volume configurations)
 
 ## Validation Criteria
+- `python manage_phase_4.py status` returns success
 - Minikube cluster starts successfully
 - kubectl can connect to the cluster
 - Persistent storage is configured for data persistence

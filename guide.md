@@ -17,6 +17,7 @@ Prove the system is **cloud-native** by deploying the AI-powered Todo applicatio
 - ** Orchestration**: Kubernetes (Minikube)
 - **Packaging**: Helm 3
 - **AI Ops**: kubectl-ai, kagent
+- **MCP**: GitHub integration for issue management.
 
 ## 🛠️ Prerequisites
 1.  **Docker Desktop** (with Kubernetes enabled) OR **Minikube**
@@ -26,30 +27,72 @@ Prove the system is **cloud-native** by deploying the AI-powered Todo applicatio
 5.  **kagent** (tool)
 6.  Python 3.12+ & Node.js 18+
 
-## 🚀 Quick Start
-### 1. Build Containers
+## 🚀 Quick Start (Local Development)
+
+### 1. Run Locally (No Docker)
+To test the application logic before containerization:
+
+**Backend:**
 ```bash
-docker build -f Dockerfile.backend -t todo-backend:latest .
-docker build -f Dockerfile.frontend -t todo-frontend:latest .
+uv run uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload --env-file .env
+```
+*Health Check: http://localhost:8000/health*
+
+**Frontend:**
+```bash
+cd src/frontend
+npm run dev
+```
+*Access App: http://localhost:3000*
+
+### 2. Run with Docker Compose
+```bash
+docker-compose up -d
 ```
 
-### 2. Deploy to Kubernetes
+### 3. Deploy to Kubernetes
 ```bash
 cd helm-chart
 helm install todo-app . --values values.yaml
 ```
 
-### 3. Verify Deployment
+## 🛠️ Phase IV Management Script
+We have provided a unified Python script to manage the entire deployment lifecycle.
+
+**1. Check Status**
+Verify your system has all required tools (Docker, Minikube, Helm, Kubectl).
 ```bash
-kubectl get pods
-# Wait for Running status
+uv run python manage_phase_4.py status
 ```
 
-### 4. AI-Assisted Management
+**2. One-Click Deployment**
+Builds images, configures secrets from `.env`, and deploys via Helm.
 ```bash
-kubectl-ai "scale the frontend to 3 replicas"
-kagent "check cluster health and suggest optimizations"
+uv run python manage_phase_4.py deploy
 ```
+
+**3. Tunneling (Port Forwarding)**
+Expose the Kubernetes services to `localhost:3000` and `localhost:8000`.
+```bash
+uv run python manage_phase_4.py tunnel
+```
+
+## 🛠️ Testing GitHub MCP Tool
+The GitHub MCP Tool allows the AI agent to interact with your repository (create issues, list PRs, etc.).
+
+**Prerequisites:**
+- `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO` must be set in `.env`.
+
+**Run Verification Script:**
+We have provided a script to verify the GitHub connection:
+```bash
+uv run python test_github_mcp.py
+```
+
+**What it tests:**
+1.  Connection to GitHub API.
+2.  Fetching repository metadata.
+3.  Listing open issues.
 
 ## 📂 Project Structure for Phase IV
 - `Dockerfile.backend`: Backend container spec
@@ -57,6 +100,7 @@ kagent "check cluster health and suggest optimizations"
 - `helm-chart/`: Helm chart definitions
 - `scripts/`: Utility scripts for deployment
 - `.claude/skills/`: AI agent skills for K8s management
+- `src/backend/mcp_server/`: MCP Tool implementations
 
 ## 📝 Success Criteria Checklist
 - [ ] Application runs on Minikube/K8s
@@ -64,3 +108,10 @@ kagent "check cluster health and suggest optimizations"
 - [ ] Env vars inject configuration
 - [ ] Pods restart with data persistence
 - [ ] `kubectl-ai` works for commands
+- [ ] GitHub MCP tool verifies successfully
+
+## 📚 submission_guide.md
+See the newly created [submission_guide.md](./submission_guide.md) for advanced instructions on:
+- Adding Helm Dependencies (Redis, etc.)
+- Docker Debugging
+- Creating your Demo Video for Judges

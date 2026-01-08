@@ -47,7 +47,7 @@ Based on the constitution for Phase IV - Local Kubernetes Deployment:
 - Implement appropriate health checks
 
 ## Files to Create/Modify
-- `scripts/deploy-to-k8s.sh` (deployment automation script)
+- `scripts/deploy_to_k8s.py` (deployment automation script)
 - `k8s/secrets.yaml` (if needed for secrets management)
 - `k8s/ingress.yaml` (for external access)
 - `docs/deployment-guide.md` (comprehensive deployment documentation)

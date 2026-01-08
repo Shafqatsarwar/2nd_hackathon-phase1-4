@@ -31,6 +31,12 @@ class PhaseConfig:
     required_features: List[str]
     deliverables: List[str]
 
+    def get_deployment_script(self):
+        """Return the path to the deployment script for this phase if applicable"""
+        if self.phase == "Phase IV":
+             return "scripts/deploy_to_k8s.py"
+        return None
+
 
 class HackathonTodoSkill:
     """
@@ -113,19 +119,22 @@ class HackathonTodoSkill:
                 description="Local Kubernetes Deployment",
                 tech_stack=[
                     "Docker", "Minikube", "Helm Charts",
-                    "kubectl-ai", "kagent", "Phase III Todo Chatbot"
+                    "kubectl-ai", "kagent", "Phase III Todo Chatbot",
+                    "GitHub MCP Tool"
                 ],
                 required_features=[
                     "Containerized frontend & backend",
                     "Helm charts for deployment",
                     "Minikube local cluster deployment",
-                    "Multi-replica readiness"
+                    "Multi-replica readiness",
+                    "GitHub MCP Integration"
                 ],
                 deliverables=[
                     "Docker images",
                     "Helm charts",
                     "Kubernetes manifests",
-                    "Minikube deployment"
+                    "Minikube deployment",
+                    "Verified GitHub Tools"
                 ]
             ),
             "phase_v": PhaseConfig(

@@ -36,4 +36,5 @@ Based on the constitution for Phase IV - Local Kubernetes Deployment:
 
 ## Reference
 - Phase IV Constitution: D:\Panaverse\project\2nd_hackathon-phase1-4\.specify\memory\📜 CONSTITUTION-Hackathon II - Phase IV — Local Kubernetes Deployment.md
+- Management Script: `manage_phase_4.py` (handles build process)
 - Existing application structure in src/, api/, and frontend/ directories

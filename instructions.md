@@ -57,17 +57,31 @@ helm upgrade phase4-todo .
 helm uninstall phase4-todo
 ```
 
-### 4. Port Forwarding (Accessing the App)
-Since we are using ClusterIP/NodePort typically in Minikube:
+### 4. Tunneling / Port Forwarding (Accessing the App)
 
+**Option A: Recommended (Management Script)**
+The easiest way to expose both services is using our management script:
 ```bash
-# Frontend
-kubectl port-forward svc/todo-frontend 3000:3000
-
-# Backend (for API docs)
-kubectl port-forward svc/todo-backend 8000:8000
+uv run python manage_phase_4.py tunnel
 ```
-*Access at http://localhost:3000*
+*   Keeps both frontend (3000) and backend (8000) open.
+*   Access app at: http://localhost:3000
+
+**Option B: Manual Port Forwarding**
+If you prefer manual control:
+```bash
+# Terminal 1 (Frontend)
+kubectl port-forward svc/todo-app-frontend-service 3000:3000
+
+# Terminal 2 (Backend)
+kubectl port-forward svc/todo-app-backend-service 8000:8000
+```
+
+**Option C: Minikube Tunnel (Advanced)**
+For LoadBalancer services (requires root/sudo):
+```bash
+sudo minikube tunnel
+```
 
 ---
 
