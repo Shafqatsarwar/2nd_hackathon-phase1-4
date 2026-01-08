@@ -1,112 +1,100 @@
-# Docker and Kubernetes Deployment Instructions
+# 🛠️ Kubernetes & Docker Deployment Instructions
 
-## Prerequisites
-- Docker Desktop/Engine with Docker Compose
-- Kubernetes cluster (Minikube/Docker Desktop with Kubernetes)
-- Helm 3.x and kubectl
-- Node.js 18+, Python 3.12+
+## 📦 Docker Deployment (Local Containerization)
 
-## Docker Deployment
+### 1. Build Docker Images
+Ensure you are in the project root.
 
-### 1. Build Images
 ```bash
-# Build backend
+# Backend
 docker build -f Dockerfile.backend -t todo-backend:latest .
 
-# Build frontend
+# Frontend
 docker build -f Dockerfile.frontend -t todo-frontend:latest .
 ```
 
-### 2. Set Environment Variables
-```bash
-export DATABASE_URL="your_postgres_connection_string"
-export BETTER_AUTH_SECRET="your_32_char_secret"
-export OPENAI_API_KEY="your_openai_api_key"
-export GITHUB_TOKEN="your_github_token"
-export GITHUB_OWNER="your_github_username"
-export GITHUB_REPO="your_repository_name"
-```
+### 2. Run with Docker Compose
+Use `docker-compose` for a quick local test of the containerized stack.
 
-### 3. Run with Docker Compose
 ```bash
-# Start services
 docker-compose up -d
+```
+*Access frontend at http://localhost:3000*
 
-# Check status
-docker-compose ps
+---
 
-# View logs
-docker-compose logs -f
+## ☸️ Kubernetes Deployment (Phase IV Core)
+
+### 1. Setup Minikube (If not using Docker Desktop K8s)
+```bash
+minikube start --driver=docker
+eval $(minikube docker-env) # Use Docker daemon inside Minikube
 ```
 
-## Kubernetes Deployment
+### 2. Secrets Management
+Create a secret for sensitive environment variables.
+*Replace values with your actual credentials.*
 
-### 1. Set Environment Variables (same as above)
 ```bash
-export DATABASE_URL="your_postgres_connection_string"
-export BETTER_AUTH_SECRET="your_32_char_secret"
-export OPENAI_API_KEY="your_openai_api_key"
-export GITHUB_TOKEN="your_github_token"
-export GITHUB_OWNER="your_github_username"
-export GITHUB_REPO="your_repository_name"
+kubectl create secret generic todo-secrets \
+  --from-literal=DATABASE_URL="postgresql://..." \
+  --from-literal=BETTER_AUTH_SECRET="your_secret" \
+  --from-literal=OPENAI_API_KEY="sk-..." \
+  --from-literal=NEXT_PUBLIC_BACKEND_URL="http://todo-backend:8000" \
+  --from-literal=NEXT_PUBLIC_BETTER_AUTH_URL="http://todo-frontend:3000"
 ```
 
-### 2. Create Kubernetes Secrets
+### 3. Deploy via Helm
 ```bash
-kubectl create secret generic todo-app-secrets \
-  --from-literal=DATABASE_URL="$DATABASE_URL" \
-  --from-literal=BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" \
-  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
-  --from-literal=GITHUB_TOKEN="$GITHUB_TOKEN" \
-  --from-literal=GITHUB_OWNER="$GITHUB_OWNER" \
-  --from-literal=GITHUB_REPO="$GITHUB_REPO"
-```
-
-### 3. Deploy with Helm
-```bash
-# Navigate to helm chart
 cd helm-chart
+# Install
+helm install phase4-todo .
 
-# Install release
-helm install todo-release .
+# Upgrade (after changes)
+helm upgrade phase4-todo .
 
-# Check status
-kubectl get pods
-kubectl get svc
-kubectl rollout status deployment/todo-release-backend
-kubectl rollout status deployment/todo-release-frontend
+# Uninstall
+helm uninstall phase4-todo
 ```
 
-### 4. Access Application
+### 4. Port Forwarding (Accessing the App)
+Since we are using ClusterIP/NodePort typically in Minikube:
+
 ```bash
-# Port forward for local access
-kubectl port-forward svc/todo-release-frontend-service 3000:3000
-kubectl port-forward svc/todo-release-backend-service 8000:8000
+# Frontend
+kubectl port-forward svc/todo-frontend 3000:3000
 
-# Or get external IPs
-kubectl get svc todo-release-frontend-service
-kubectl get svc todo-release-backend-service
+# Backend (for API docs)
+kubectl port-forward svc/todo-backend 8000:8000
 ```
+*Access at http://localhost:3000*
 
-### 5. Scaling & Management
+---
+
+## 🤖 AI Operations (`kubectl-ai` & `kagent`)
+
+### Using `kubectl-ai`
+Generate and apply manifests or perform actions using natural language.
+
 ```bash
-# Scale deployments
-kubectl scale deployment todo-release-backend --replicas=3
-kubectl scale deployment todo-release-frontend --replicas=2
+# Example: Create a new deployment
+kubectl-ai "create a nginx deployment with 2 replicas"
 
-# Upgrade deployment
-helm upgrade todo-release .
-
-# Check logs
-kubectl logs -l app=todo-backend
-kubectl logs -l app=todo-frontend
+# Example: Scale our app
+kubectl-ai "scale deployment todo-backend to 5 replicas"
 ```
 
-### 6. Cleanup
+### Using `kagent`
+Analyze and optimize the cluster.
+
 ```bash
-# Uninstall Helm release
-helm uninstall todo-release
+# Diagnose issues
+kagent "why is the frontend pod crashing?"
 
-# Delete secrets
-kubectl delete secret todo-app-secrets
+# Optimize
+kagent "analyze resources and suggest limits"
 ```
+
+## 🧪 Verification & Testing
+1. **Persistence Test**: Delete a backend pod (`kubectl delete pod <backend-pod>`). It should recreate. Check if data persists in the app.
+2. **Connectivity**: Ensure frontend can talk to backend via the K8s service DNS.
