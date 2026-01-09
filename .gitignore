@@ -11,6 +11,7 @@ __pycache__/
 .env.local
 .env.vercel
 .env.backend
+\\wsl.localhost\Ubuntu\home\shafqatsarwar\Projects\2nd_hackathon-phase1-4\src\backend\.env.backend
 !.env.example
 venv/
 ENV/
