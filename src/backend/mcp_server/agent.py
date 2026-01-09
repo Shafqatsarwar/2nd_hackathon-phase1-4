@@ -16,7 +16,13 @@ class TodoOpenAIAgent:
     """
 
     def __init__(self):
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "OPENAI_API_KEY environment variable is not set. "
+                "Please configure it in your .env file or environment variables."
+            )
+        self.client = OpenAI(api_key=api_key)
 
         # Initialize tools
         self.github_tools = GitHubMCPTools()

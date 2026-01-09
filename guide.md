@@ -2,6 +2,8 @@
 
 Welcome to the internal developer guide for Phase IV. This project implements a cloud-native, AI-powered Todo system using Spec-Driven Development (SDD).
 
+uv run uvicorn main:app --reload --port 8000
+
 ## 🏗️ System Architecture
 
 The application is split into three main tiers:

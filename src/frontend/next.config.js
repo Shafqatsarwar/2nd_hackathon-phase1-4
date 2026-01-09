@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const DEFAULT_BACKEND_URL = "http://127.0.0.1:800";
+const DEFAULT_BACKEND_URL = "http://127.0.0.1:8000";
 
 const sanitizeBackendUrl = (value) => {
     let base = value || DEFAULT_BACKEND_URL;
