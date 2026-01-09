@@ -66,7 +66,7 @@ export default function ChatPage() {
     // 3. Speech Recognition (STT) - Browser Native
     const toggleListening = () => {
         if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-            alert("Speech recognition is not supported in this browser. Try Chrome.");
+            alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
             return;
         }
 
@@ -74,21 +74,79 @@ export default function ChatPage() {
             recognitionRef.current?.stop();
             setIsListening(false);
         } else {
-            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = language; // Use selected language
+            try {
+                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false; // Change back to false to avoid timeouts
+                recognition.interimResults = true; // Show interim results
+                recognition.lang = language; // Use selected language
+                recognition.maxAlternatives = 1;
 
-            recognition.onstart = () => setIsListening(true);
-            recognition.onend = () => setIsListening(false);
-            recognition.onresult = (event: any) => {
-                const transcript = event.results[0][0].transcript;
-                setInput((prev: string) => prev ? prev + " " + transcript : transcript);
-            };
+                // Set interim and final result timeouts to prevent hanging
+                recognition.interimResults = true;
 
-            recognitionRef.current = recognition;
-            recognition.start();
+                recognition.onstart = () => setIsListening(true);
+
+                recognition.onend = () => {
+                    // Only set to not listening if we didn't restart manually
+                    if (isListening) {
+                        setIsListening(false);
+                    }
+                };
+
+                recognition.onerror = (event: any) => {
+                    console.error("Speech recognition error", event.error);
+
+                    // Handle specific errors gracefully
+                    if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+                        // Stop listening if there's a permission or audio issue
+                        setIsListening(false);
+
+                        if (event.error === 'not-allowed') {
+                            alert("Microphone access denied. Please allow microphone access in your browser settings.");
+                        } else if (event.error === 'audio-capture') {
+                            alert("Could not access microphone. Please check if a microphone is connected and accessible.");
+                        }
+                        // For 'no-speech', just silently stop without alert
+                    } else {
+                        // For other errors, stop listening
+                        setIsListening(false);
+                    }
+                };
+
+                recognition.onresult = (event: any) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    if (finalTranscript) {
+                        setInput(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
+                    } else if (interimTranscript) {
+                        setInput(prev => prev ? prev + ' ' + interimTranscript : interimTranscript);
+                    }
+
+                    // Auto-stop after getting final result to prevent timeout
+                    if (finalTranscript) {
+                        recognition.stop();
+                        setIsListening(false);
+                    }
+                };
+
+                recognitionRef.current = recognition;
+                recognition.start();
+            } catch (error) {
+                console.error("Error initializing speech recognition:", error);
+                alert("Failed to initialize speech recognition. Please check browser permissions.");
+                setIsListening(false);
+            }
         }
     };
 

@@ -10,7 +10,7 @@ from .agent import TodoOpenAIAgent
 
 # Import MCP server components conditionally to avoid breaking Phase II
 try:
-    from src.backend.mcp_server.mcp_server import mcp_server
+    from .mcp_server import mcp_server
     MCP_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: MCP server not available: {e}")

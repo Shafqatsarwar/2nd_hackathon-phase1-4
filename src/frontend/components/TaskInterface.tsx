@@ -7,7 +7,11 @@ import { fetcher } from "../utils/fetcher";
 interface Task {
     id: number;
     title: string;
+    description: string;
     completed: boolean;
+    priority: string;
+    is_recurring: boolean;
+    recurrence_interval: string | null;
     user_id: string;
 }
 
@@ -126,30 +130,55 @@ export default function TaskInterface({ userId, token, title = "Evolution Task M
                     tasks.map(task => (
                         <div
                             key={task.id}
-                            className={`flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl transition hover:border-slate-600 group ${task.completed ? 'opacity-50' : ''}`}
+                            className={`flex flex-col p-4 bg-slate-900 border border-slate-800 rounded-xl transition hover:border-slate-600 group ${task.completed ? 'opacity-50' : ''}`}
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 flex-1">
+                                    <button
+                                        onClick={() => toggleTask(task.id)}
+                                        className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${task.completed ? 'bg-purple-600 border-purple-600' : 'border-slate-700 group-hover:border-purple-500'}`}
+                                    >
+                                        {task.completed && <span className="text-[10px] text-white">✓</span>}
+                                    </button>
+                                    <span
+                                        onClick={() => toggleTask(task.id)}
+                                        className={`transition cursor-pointer select-none flex-1 ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}
+                                    >
+                                        {task.title}
+                                    </span>
+                                </div>
                                 <button
-                                    onClick={() => toggleTask(task.id)}
-                                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${task.completed ? 'bg-purple-600 border-purple-600' : 'border-slate-700 group-hover:border-purple-500'}`}
+                                    onClick={() => deleteTask(task.id)}
+                                    className="p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 >
-                                    {task.completed && <span className="text-[10px] text-white">✓</span>}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
                                 </button>
-                                <span
-                                    onClick={() => toggleTask(task.id)}
-                                    className={`transition cursor-pointer select-none ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}
-                                >
-                                    {task.title}
-                                </span>
                             </div>
-                            <button
-                                onClick={() => deleteTask(task.id)}
-                                className="p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                            </button>
+
+                            {/* Priority and Recurrence Info */}
+                            <div className="flex items-center gap-3 mt-2 text-xs">
+                                <span className={`px-2 py-1 rounded-full ${
+                                    task.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                                    task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                    'bg-green-500/20 text-green-400'
+                                }`}>
+                                    {task.priority}
+                                </span>
+
+                                {task.is_recurring && task.recurrence_interval && (
+                                    <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">
+                                        Repeats: {task.recurrence_interval}
+                                    </span>
+                                )}
+
+                                {task.is_recurring && !task.recurrence_interval && (
+                                    <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">
+                                        Recurring
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     ))
                 )}

@@ -17,3 +17,7 @@ dependencies = [
     "anthropic>=0.21.0",
     "modelcontextprotocol>=1.0.1"
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
