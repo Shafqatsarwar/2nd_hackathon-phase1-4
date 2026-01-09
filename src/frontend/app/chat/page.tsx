@@ -17,6 +17,7 @@ export default function ChatPage() {
     const [session, setSession] = useState<any>(null);
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [language, setLanguage] = useState<"en-US" | "ur-PK">("en-US");
 
     const router = useRouter();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -28,7 +29,7 @@ export default function ChatPage() {
         body: {
             userId: session?.user?.id,
             token: session?.token,
-            // Pass conversation ID if we had one persistent
+            language: language,
         },
         onError: (err: Error) => {
             console.error("Chat error:", err);
@@ -77,7 +78,7 @@ export default function ChatPage() {
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = false;
-            recognition.lang = "en-US";
+            recognition.lang = language; // Use selected language
 
             recognition.onstart = () => setIsListening(true);
             recognition.onend = () => setIsListening(false);
@@ -102,6 +103,7 @@ export default function ChatPage() {
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = language; // Use selected language
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         utterance.onend = () => setIsSpeaking(false);

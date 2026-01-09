@@ -1,149 +1,71 @@
-# The Evolution of Todo - Phase IV: Cloud-Native Kubernetes Deployment
+# 🚀 The Evolution of Todo: Phase IV
+### Cloud-Native, AI-Powered Task Management System
 
-This repository contains the "The Evolution of Todo" project, showcasing the complete evolution from a simple CLI tool to a cloud-native, full-stack web system with AI capabilities. This project follows the Agentic Dev Stack workflow: Write spec → Generate plan → Break into tasks → Implement via Claude Code.
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016-black?logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Kubernetes](https://img.shields.io/badge/Orchestration-Kubernetes-326ce5?logo=kubernetes)](https://kubernetes.io/)
+[![PostgreSQL](https://img.shields.io/badge/Database-Neon%20PostgreSQL-336791?logo=postgresql)](https://neon.tech/)
 
-## 🚀 Project Overview
+## 🌟 Overview
 
-The project evolves through multiple phases:
+**The Evolution of Todo** is a showcase of modern software engineering, evolving from a simple CLI tool into a sophisticated, cloud-native enterprise platform. Phase IV focuses on **Local Kubernetes Deployment**, ensuring the system is resilient, scalable, and management-automated through AI.
 
-- **Phase I**: In-Memory Python Console App
-- **Phase II**: Full-Stack Web Application (Next.js + FastAPI)
-- **Phase III**: AI-Powered Todo Chatbot
-- **Phase IV**: Local Kubernetes Deployment (Current Focus)
-- **Phase V**: Advanced Cloud Deployment
+## ✨ Key Features
 
-## 🌟 Features
-
-### Core Todo Functionality
-- Add, View, Update, Delete tasks
-- Mark tasks as complete/incomplete
-- User authentication and authorization
-
-### Advanced Features
-- Priority management
-- Recurring tasks
-- AI-powered analysis and sentiment detection
-- Real-time web search capabilities for current information (weather, news, market rates, etc.)
-- Chat history functionality
-- MCP (Model Context Protocol) server integration
-
-### Cloud-Native Features (Phase IV)
-- Dockerized frontend and backend applications
-- Helm charts for Kubernetes deployment
-- Multi-replica readiness
-- Local cluster deployment with Minikube
-- AI-assisted operations with kubectl-ai and kagent
-- Docker AI Agent (Gordon) integration
+-   **🤖 AI Conversational UI**: Manage your tasks through natural language with our built-in chatbot.
+-   **🎙️ Voice-To-Action**: Fully integrated voice commands (STT) and voice feedback (TTS) with Urdu support.
+-   **🔌 MCP Integration**: AI agents empowered with tools to interact with GitHub, perform web searches, and check weather.
+-   **☸️ Cloud-Native Deployment**: Fully containerized with Docker and orchestrated via Kubernetes (Helm).
+-   **🔐 Secure Multi-Tenancy**: Robust authentication powered by Better Auth with strict user data isolation.
+-   **📈 Spec-Driven Development**: Entirely built using SDD principles where the specification is the absolute source of truth.
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js 16+ (App Router)
-- **Backend**: Python FastAPI
-- **ORM**: SQLModel
-- **Database**: Neon Serverless PostgreSQL
-- **Authentication**: Better Auth (JWT-based)
-- **AI Integration**: OpenAI Agents SDK, MCP Server
-- **Containerization**: Docker
-- **Orchestration**: Kubernetes (Minikube)
-- **Package Management**: uv
-
-## 📁 Repository Structure
-
-```
-.
-├── api/                    # Vercel serverless entry point
-├── .claude/               # Claude Code MCP configuration
-├── .specify/              # Claude Code memory and history
-├── specs/                 # SDD Specifications
-├── src/
-│   ├── cli/               # Phase I: CLI App
-│   ├── backend/           # Phase II+: Python FastAPI service
-│   └── frontend/          # Phase II+: Next.js application
-├── helm-chart/            # Phase IV: Kubernetes Helm charts
-├── Dockerfile.backend     # Phase IV: Backend container
-├── Dockerfile.frontend    # Phase IV: Frontend container
-├── docker-compose.yml     # Phase IV: Local orchestration
-├── vercel.json            # Vercel routing configuration
-├── constitution.md        # Governing Rules
-├── CLAUDE.md              # Claude Code instructions
-├── guide.md               # Developer guide (with Phase IV)
-└── pyproject.toml         # Project Workspace
-```
-
-## 🚀 Phase IV: Kubernetes Deployment
-
-This project is now fully prepared for cloud-native deployment with the following features:
-
-### Dockerization
-- Both frontend and backend are containerized
-- Optimized Dockerfiles for production
-- Multi-stage builds for smaller images
-
-### Helm Charts
-- Complete Kubernetes deployment manifests
-- Parameterizable configurations
-- Service networking setup
-- Resource management
-
-### Local Kubernetes Setup
-- Works with Minikube or Docker Desktop Kubernetes
-- Multi-replica deployment ready
-- Service discovery and load balancing
-
-### AI-Assisted Operations
-- kubectl-ai for intelligent Kubernetes operations
-- kagent for cluster analysis
-- Docker AI Agent (Gordon) for container operations
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | Next.js 15+ (App Router), Tailwind CSS, Framer Motion |
+| **Backend** | Python FastAPI, SQLModel, Uvicorn |
+| **AI** | OpenAI GPT-4o, Vercel AI SDK, MCP Server |
+| **Auth** | Better Auth (JWT) |
+| **Database** | Neon Serverless PostgreSQL |
+| **DevOps** | Docker, Kubernetes, Helm, Minikube |
+| **Tools** | uv, npm, kubectl-ai, kagent |
 
 ## 🚀 Quick Start
 
-### Local Development
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   cd src/backend
-   uv sync
-   cd ../frontend
-   npm install
-   ```
-3. Start backend: `uv run uvicorn main:app --reload --port 8000`
-4. Start frontend: `npm run dev`
+### 1. Prerequisites
+Ensure you have `uv`, `node.js`, and `docker` installed.
 
-### Docker Deployment
-1. Build Docker images:
-   ```bash
-   docker build -f Dockerfile.backend -t todo-backend:latest .
-   docker build -f Dockerfile.frontend -t todo-frontend:latest .
-   ```
-2. Run with Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
+### 2. Setup
+```bash
+# Clone the repository
+git clone https://github.com/Shafqatsarwar/2nd_hackathon-phase1-4.git
+cd 2nd_hackathon-phase1-4
 
-### Kubernetes Deployment
-1. Install prerequisites: Docker, kubectl, Helm
-2. Start Minikube: `minikube start`
-3. Deploy with Helm:
-   ```bash
-   cd helm-chart
-   helm install todo-release .
-   ```
+# Install dependencies (WSL/Linux/macOS)
+npm install
+uv sync
+```
 
-## 🌐 Live Deployment
+### 3. Run Locally
+```bash
+# Start Backend
+uv run uvicorn src.backend.main:app --reload --port 8000
 
-The application can be deployed to:
-- Vercel (for web deployment)
-- Kubernetes cluster (for cloud-native deployment)
-- Local Minikube (for development)
+# Start Frontend
+npm run dev
+```
 
-## 🤝 Contributing
+## ☸️ Production-Ready Deployment
 
-This project follows a strict Spec-Driven Development (SDD) approach. All contributions should:
-1. Follow the SDD workflow: Spec → Plan → Tasks → Implementation
-2. Maintain the existing architecture and patterns
-3. Preserve all existing functionality while adding new features
-4. Update specifications when adding new features
+For instructions on how to deploy this system to a **Kubernetes** cluster, please refer to:
+👉 **[Deployment Instructions](./instructions.md)**
 
-## 📄 License
+## 🧪 Developer Resources
 
-This project is part of the Panaversity Hackathon curriculum.
+-   **[Developer Guide](./guide.md)**: Deep dive into architecture and features.
+-   **[Project Constitution](./.specify/memory/📜%20CONSTITUTION-Hackathon%20II%20-%20Full%20Todo%20Spec-Driven%20Development.md)**: The governing rules of this project.
+
+## 🤝 Acknowledgments
+
+Built for the **Panaversity Hackathon II** — pushing the boundaries of AI-native software development.

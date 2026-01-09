@@ -1,128 +1,95 @@
-# ☸️ Phase IV: Local Kubernetes Deployment
+# 📖 Developer Guide: The Evolution of Todo
 
-## 🎯 Objective
-Prove the system is **cloud-native** by deploying the AI-powered Todo application to a local Kubernetes cluster (Minikube). The system must be resilient, scalable, and managed via declarative infrastructure (Helm Charts).
+Welcome to the internal developer guide for Phase IV. This project implements a cloud-native, AI-powered Todo system using Spec-Driven Development (SDD).
 
-## 📜 Constitutional Requirements
-- **Immutable Containers**: Docker images must be read-only at runtime.
-- **Configuration**: All config via Environment Variables (no hardcoding).
-- **Declarative Infrastructure**: Use Helm Charts for all resources.
-- **Zero Data Loss**: System must survive pod restarts without losing data.
-- **AI Operations**: Use `kubectl-ai` and `kagent` for cluster management.
+## 🏗️ System Architecture
 
-## 🏗️ Architecture
-- **Frontend**: Next.js (Dockerized)
-- **Backend**: FastAPI (Dockerized)
-- **Database**: External (Neon) or In-cluster (StatefulSet - *if strictly local, but we use Neon for continuity*)
-- ** Orchestration**: Kubernetes (Minikube)
-- **Packaging**: Helm 3
-- **AI Ops**: kubectl-ai, kagent
-- **MCP**: GitHub integration for issue management.
+The application is split into three main tiers:
 
-## 🛠️ Prerequisites
-1.  **Docker Desktop** (with Kubernetes enabled) OR **Minikube**
-2.  **Helm 3.x**
-3.  **kubectl**
-4.  **kubectl-ai** (plugin)
-5.  **kagent** (tool)
-6.  Python 3.12+ & Node.js 18+
+1.  **Frontend (Next.js 16)**: A modern React application using the App Router, Tailwind CSS, and Vercel AI SDK. It handles UI, voice interaction, and client-side auth.
+2.  **Backend (FastAPI)**: A high-performance Python service that manages tasks, integrates with MCP (Model Context Protocol), and orchestrates AI agents.
+3.  **Database (PostgreSQL)**: Hosted on Neon Serverless, managed via SQLModel (ORM).
 
-## 🚀 Quick Start (Local Development)
+## 📂 Project Structure
 
-### 1. Run Locally (No Docker)
-To test the application logic before containerization:
-
-**Backend:**
-```bash
-uv run uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload --env-file .env
-```
-*Health Check: http://localhost:8000/health*
-
-**Frontend:**
-```bash
-cd src/frontend
-npm run dev
-```
-*Access App: http://localhost:3000*
-
-### 2. Run with Docker Compose
-```bash
-docker-compose up -d
+```text
+.
+├── src/
+│   ├── frontend/          # Next.js Application
+│   │   ├── app/           # Routes and API Handlers
+│   │   ├── components/    # Reusable UI Components
+│   │   └── .env.local     # Local Environment Variables
+│   └── backend/           # FastAPI Application
+│       ├── agents/        # OpenAI Orchestrator
+│       ├── mcp_server/    # MCP Tools (GitHub, Web Search, Weather)
+│       ├── models.py      # SQLModel Schemas
+│       └── .env.backend   # Backend Environment Variables
+├── helm-chart/            # Kubernetes Manifests
+├── Dockerfile.backend     # Backend Container Spec
+└── Dockerfile.frontend    # Frontend Container Spec
 ```
 
-### 3. Deploy to Kubernetes
-```bash
-cd helm-chart
-helm install todo-app . --values values.yaml
-```
+## 🎙️ AI Chat & Voice Features
 
-## 🛠️ Phase IV Management Script
-We have provided a unified Python script to manage the entire deployment lifecycle.
+We use the **Vercel AI SDK** combined with **Web Speech API** for a seamless interactive experience.
 
-**1. Check Status**
-Verify your system has all required tools (Docker, Minikube, Helm, Kubectl).
-```bash
-uv run python manage_phase_4.py status
-```
+### Key Components:
+- **STT (Speech-to-Text)**: Native browser `SpeechRecognition`.
+- **TTS (Text-to-Speech)**: Native browser `speechSynthesis`.
+- **Language Support**: Default is English (`en-US`), with support for Urdu (`ur-PK`).
 
-**2. One-Click Deployment**
-Builds images, configures secrets from `.env`, and deploys via Helm.
-```bash
-uv run python manage_phase_4.py deploy
-```
+### How to test:
+1. Start the dev servers.
+2. Visit `/chat`.
+3. Click the 🎙️ icon to speak. The AI will respond and optionally read the message aloud via the 🔊 icon.
 
-**3. Tunneling (Port Forwarding)**
-Expose the Kubernetes services to `localhost:3000` and `localhost:8000`.
-```bash
-uv run python manage_phase_4.py tunnel
-```
+## 🛠️ MCP (Model Context Protocol) Tools
 
-## 🛠️ Testing GitHub MCP Tool
-The GitHub MCP Tool allows the AI agent to interact with your repository (create issues, list PRs, etc.).
+The backend exposes several tools to the AI Agent:
+- **Task Tools**: CRUD operations on todos.
+- **GitHub Tools**: Create issues, PRs, and list repos.
+- **Web Search**: Real-time information fetching via Google/DuckDuckGo.
+- **Weather**: Current weather and forecasts.
 
-**Prerequisites:**
-- `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO` must be set in `.env`.
+## 🤖 AI Agent Skills
 
-**Run Verification Script:**
-We have provided a script to verify the GitHub connection:
-```bash
-uv run python test_github_mcp.py
-```
+The AI agents in this project are equipped with specialized skills to manage the deployment lifecycle:
 
-**What it tests:**
-1.  Connection to GitHub API.
-2.  Fetching repository metadata.
-3.  Listing open issues.
+- **Dockerization Skill**: Automatically generates and optimizes Dockerfiles for any service.
+- **Helm Chart Skill**: Creates declarative Kubernetes manifests and manages value overrides.
+- **Minikube Setup Skill**: Configures local Kubernetes environments and integrates with Docker.
+- **K8s Deployment Skill**: Validates multi-replica readiness and zero-data-loss persistence.
+- **Gordon (Docker AI)**: Special agent for container runtime optimization.
+- **kubectl-ai & kagent**: Natural language orchestration and cluster diagnostics.
 
-## 🎙️ Voice-Enabled AI Chatbot (New!)
-We have integrated the **Vercel AI SDK**, **Web Speech API** (Speech-to-Text), and **Speech Synthesis** (Text-to-Speech) for a fully interactive experience.
+## 🚀 Development Workflow
 
-### How to use:
-1.  Navigate to the **AI Chat** page (`/chat`).
-2.  **Voice Input**: Click the 🎙️ **Microphone** icon in the input bar and speak your command (e.g., *"Create a task to buy milk"*).
-3.  **Voice Output**: Click the 🔊 **Speaker** icon on any message bubble to hear the AI's response.
+1.  **Sync Dependencies**:
+    ```bash
+    # Frontend
+    cd src/frontend && npm install
+    # Backend
+    uv sync
+    ```
+2.  **Set Environment Variables**:
+    Ensure `.env.local` and `.env.backend` are populated with the keys provided in the setup instructions.
+3.  **Run Development Servers**:
+    ```bash
+    # Backend
+    uv run uvicorn src.backend.main:app --reload --port 8000
+    # Frontend
+    npm run dev --workspace=src/frontend
+    ```
 
-**Architecture Note:**
-This feature uses a "BFF" (Backend-for-Frontend) pattern. The Next.js API route (`src/frontend/app/api/chat/route.ts`) proxies requests between the Vercel AI SDK on the client and the Python FastAPI backend.
+## 🔒 Security & Auth
 
-## 📂 Project Structure for Phase IV
-- `Dockerfile.backend`: Backend container spec
-- `Dockerfile.frontend`: Frontend container spec
-- `helm-chart/`: Helm chart definitions
-- `scripts/`: Utility scripts for deployment
-- `.claude/skills/`: AI agent skills for K8s management
-- `src/backend/mcp_server/`: MCP Tool implementations
+- **Better Auth**: Handles user sessions and JWT generation.
+- **JWT Middleware**: FastAPI `verify_jwt` dependency ensures that users can only access their own tasks.
+- **Isolation**: Every database query is scoped by `user_id`.
 
-## 📝 Success Criteria Checklist
-- [ ] Application runs on Minikube/K8s
-- [ ] No hardcoded URLs in code
-- [ ] Env vars inject configuration
-- [ ] Pods restart with data persistence
-- [ ] `kubectl-ai` works for commands
-- [ ] GitHub MCP tool verifies successfully
+## 📜 Constitutional Alignment
 
-## 📚 submission_guide.md
-See the newly created [submission_guide.md](./submission_guide.md) for advanced instructions on:
-- Adding Helm Dependencies (Redis, etc.)
-- Docker Debugging
-- Creating your Demo Video for Judges
+This project strictly follows the **Constitution**.
+- **Golden Rule**: No manual code writing. All logic is derived from specs.
+- **Statelessness**: Services are designed to be horizontally scalable.
+- **Cloud-Ready**: Everything is containerized and ready for Kubernetes.
