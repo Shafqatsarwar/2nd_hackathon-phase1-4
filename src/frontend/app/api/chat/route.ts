@@ -1,24 +1,29 @@
-
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { StreamingTextResponse } from "ai";
 
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
     try {
-        const { messages, userId, token, conversationId } = await req.json();
-        const lastMessage = messages[messages.length - 1];
+        const { messages, userId, token } = await req.json();
 
-        // 1. Call Python Backend
+        if (!messages || messages.length === 0) {
+            return new Response("No messages provided", { status: 400 });
+        }
+
+        const lastMessage = messages[messages.length - 1];
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+
+        // Call backend chat endpoint
         const response = await fetch(`${backendUrl}/api/${userId}/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token || "admin_token"}`
             },
             body: JSON.stringify({
                 message: lastMessage.content,
-                conversation_id: conversationId
+                conversation_id: null
             })
         });
 
@@ -26,23 +31,80 @@ export async function POST(req: NextRequest) {
             const errorText = await response.text();
             console.error("Backend chat error:", errorText);
 
-            // Return a more informative error message
-            if (response.status === 500) {
-                return new NextResponse("Chat service unavailable. Please ensure the backend is running and OPENAI_API_KEY is configured.", { status: 500 });
-            }
+            // Return a user-friendly error message
+            const errorMessage = response.status === 500
+                ? "I'm having trouble connecting to the AI service. Please make sure the backend is running and OPENAI_API_KEY is configured."
+                : `Backend error: ${errorText}`;
 
-            return new NextResponse(errorText || "Backend error", { status: response.status });
+            // Return as AI SDK compatible stream
+            const encoder = new TextEncoder();
+            const stream = new ReadableStream({
+                start(controller) {
+                    const formattedError = `0:"${errorMessage.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`;
+                    controller.enqueue(encoder.encode(formattedError));
+                    controller.close();
+                }
+            });
+
+            return new StreamingTextResponse(stream);
         }
 
-        const data = await response.json();
+        // Backend returns plain text stream, we need to convert it properly
+        if (!response.body) {
+            throw new Error("No response body from backend");
+        }
 
-        // 2. Return as text (Vercel AI SDK can handle raw text response)
-        // If we wanted streaming, we'd use OpenAIStream/LangChainAdapter here.
-        // Since Python backend is not streaming, we just return the text.
-        return new NextResponse(data.response || "I received your message but couldn't process it. Please make sure the backend is running and OPENAI_API_KEY is configured.");
+        // Create a readable stream that properly formats the backend response
+        // The AI SDK expects data in the format: "0:\"text\"\n"
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        const transformedStream = new ReadableStream({
+            async start(controller) {
+                const reader = response.body!.getReader();
+
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+
+                        if (done) {
+                            controller.close();
+                            break;
+                        }
+
+                        // Decode the chunk
+                        const text = decoder.decode(value, { stream: true });
+                        if (text) {
+                            // Format each chunk according to AI SDK data stream protocol
+                            // Format: "0:\"text content\"\n"
+                            const formattedChunk = `0:"${text.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`;
+                            controller.enqueue(encoder.encode(formattedChunk));
+                        }
+                    }
+                } catch (error) {
+                    console.error("Stream processing error:", error);
+                    controller.error(error);
+                }
+            }
+        });
+
+        return new StreamingTextResponse(transformedStream);
 
     } catch (error: any) {
-        console.error("Chat Adapter Error:", error);
-        return new NextResponse("Chat service is not available. Please ensure the backend is running and OPENAI_API_KEY is configured in the backend.", { status: 500 });
+        console.error("Chat API Error:", error);
+
+        // Return error as AI SDK compatible stream
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            start(controller) {
+                const errorMsg = "I'm having trouble processing your request. Please ensure the backend server is running at " +
+                    (process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000");
+                const formattedError = `0:"${errorMsg.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`;
+                controller.enqueue(encoder.encode(formattedError));
+                controller.close();
+            }
+        });
+
+        return new StreamingTextResponse(stream);
     }
 }

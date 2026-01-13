@@ -2,11 +2,10 @@
 GitHub MCP Tools for the Todo Application
 Provides integration with GitHub services through MCP
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 import requests
 import os
 from dataclasses import dataclass
-import json
 
 
 @dataclass

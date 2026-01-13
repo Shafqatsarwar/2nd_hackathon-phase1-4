@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Load local .env if it exists
 load_dotenv()
 
-BACKEND_URL = "http://127.0.0.1:800"
+BACKEND_URL = "http://127.0.0.1:8000"
 SECRET = os.getenv("BETTER_AUTH_SECRET", "default_secret_change_me")
 USER_ID = "test-user-999"
 
@@ -24,7 +24,7 @@ def test_backend_flow():
     print(f"--- STARTING PHASE II BACKEND TEST ---")
     token = generate_test_token(USER_ID)
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     # 1. Test Health
     print("Testing /health...")
     try:
@@ -60,7 +60,7 @@ def test_backend_flow():
     tasks = res.json()
     if len(tasks) > 0:
         print(f"✅ Retrieved {len(tasks)} tasks.")
-    
+
     # 5. Clean up (Delete)
     print(f"\nTesting DELETE /api/{{user_id}}/tasks/{task_id}...")
     res = requests.delete(f"{BACKEND_URL}/api/{USER_ID}/tasks/{task_id}", headers=headers)

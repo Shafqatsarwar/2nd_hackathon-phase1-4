@@ -43,6 +43,10 @@ export default function TaskInterface({ userId, token, title = "Evolution Task M
         fetchTasks();
     }, [fetchTasks]);
 
+    const [priority, setPriority] = useState("medium");
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [recurrenceInterval, setRecurrenceInterval] = useState("daily");
+
     const addTask = async () => {
         if (!newTitle) return;
         try {
@@ -52,12 +56,21 @@ export default function TaskInterface({ userId, token, title = "Evolution Task M
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ title: newTitle })
+                body: JSON.stringify({
+                    title: newTitle,
+                    description: "",
+                    priority: priority,
+                    is_recurring: isRecurring,
+                    recurrence_interval: isRecurring ? recurrenceInterval : null
+                })
             });
             if (res.ok) {
                 const newTask = await res.json();
                 setTasks([...tasks, newTask]);
                 setNewTitle("");
+                setPriority("medium");
+                setIsRecurring(false);
+                setRecurrenceInterval("daily");
             }
         } catch (err) {
             console.error(err);
@@ -104,20 +117,54 @@ export default function TaskInterface({ userId, token, title = "Evolution Task M
             </h2>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-sm">
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-4">
                     <input
                         type="text"
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
                         placeholder="Add to the evolution..."
-                        className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-600"
+                        className="bg-slate-950 border border-slate-800 rounded-xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-600"
                     />
-                    <button
-                        onClick={addTask}
-                        className="bg-white text-black font-bold px-6 rounded-xl hover:bg-neutral-200 transition-colors active:scale-95 cursor-pointer"
-                    >
-                        Add
-                    </button>
+                    <div className="flex gap-3">
+                        <select
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 flex-1"
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+
+                        <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3">
+                            <input
+                                type="checkbox"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                className="w-4 h-4 accent-purple-500"
+                                id="recurring-check"
+                            />
+                            <label htmlFor="recurring-check" className="text-sm text-slate-300 cursor-pointer select-none">Repeat</label>
+                            {isRecurring && (
+                                <select
+                                    value={recurrenceInterval}
+                                    onChange={(e) => setRecurrenceInterval(e.target.value)}
+                                    className="bg-transparent text-sm text-purple-300 border-none focus:ring-0 cursor-pointer"
+                                >
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={addTask}
+                            className="bg-white text-black font-bold px-6 rounded-xl hover:bg-neutral-200 transition-colors active:scale-95 cursor-pointer whitespace-nowrap"
+                        >
+                            Add
+                        </button>
+                    </div>
                 </div>
             </div>
 

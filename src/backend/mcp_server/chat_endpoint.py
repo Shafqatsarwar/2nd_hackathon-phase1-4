@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
-import json
 from sqlmodel import Session
 from ..database import get_session
 from ..auth_utils import verify_jwt
@@ -32,7 +32,7 @@ class ChatResponse(BaseModel):
     tool_calls: List[Dict[str, Any]] = []
 
 
-@router.post("/{user_id}/chat", response_model=ChatResponse)
+@router.post("/{user_id}/chat")
 async def chat(
     user_id: str,
     request: ChatRequest = None,
@@ -73,29 +73,7 @@ async def chat(
     session.add(user_message)
     session.commit()
 
-    # In a production implementation, this would connect to an OpenAI agent
-    # that uses the MCP server's tools to perform operations.
-    # For now, we implement a simple rule-based processor that follows
-    # the same patterns as the MCP tools would.
-    response_text = await process_natural_language_command(
-        user_id, request.message if request else "", session
-    )
-
-    # Store assistant response
-    assistant_message = Message(
-        conversation_id=conversation_id,
-        user_id=user_id,
-        role="assistant",
-        content=response_text
-    )
-    session.add(assistant_message)
-    session.commit()
-
-    return ChatResponse(
-        conversation_id=conversation_id,
-        response=response_text,
-        tool_calls=[]  # In a real implementation, this would contain actual tool calls
-    )
+    return StreamingResponse(process_natural_language_command(user_id, request.message if request else "", session), media_type="text/event-stream")
 
 
 @router.get("/{user_id}/chat/history", response_model=List[Dict[str, Any]])
@@ -143,17 +121,17 @@ async def process_natural_language_command(user_id: str, message: str, session: 
     # Initialize the OpenAI agent
     try:
         agent = TodoOpenAIAgent()
-        response = agent.process_message(user_id, message, session)
-        return response
+        async for chunk in agent.process_message(user_id, message, session):
+            yield chunk
     except ValueError as e:
         # Environment variable not set
         error_msg = str(e)
         print(f"Configuration error: {error_msg}")
-        return f"Configuration error: {error_msg}"
+        yield f"Configuration error: {error_msg}"
     except Exception as e:
         # Fallback to a simple rule-based processor if OpenAI integration fails
         import traceback
         error_details = traceback.format_exc()
         print(f"OpenAI agent error: {e}")
         print(f"Full traceback:\n{error_details}")
-        return f"I encountered an issue processing your request: {str(e)}. Please check the server logs for details."
+        yield f"I encountered an issue processing your request: {str(e)}. Please check the server logs for details."

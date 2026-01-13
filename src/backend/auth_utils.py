@@ -4,7 +4,7 @@ from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(".env.local", override=True)
 
 # Shared secret between Frontend and Backend
 BETTER_AUTH_SECRET = os.getenv("BETTER_AUTH_SECRET")
@@ -14,7 +14,10 @@ if not BETTER_AUTH_SECRET:
     warnings.warn("BETTER_AUTH_SECRET environment variable is not set. Using default secret. This is insecure for production!")
     BETTER_AUTH_SECRET = "default_secret_change_me"
 
-security = HTTPBearer()
+security = HTTPBearer(
+    scheme_name="bearerAuth",
+    description="Enter **Admin token** for Admin or use **Guest token**=`guest_token` for guest access. The lock icon will turn Authorized if passed."
+)
 
 def verify_jwt(credentials: HTTPAuthorizationCredentials = Security(security)):
     """

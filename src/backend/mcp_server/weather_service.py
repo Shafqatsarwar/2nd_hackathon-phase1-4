@@ -1,6 +1,5 @@
 import requests
 import logging
-from typing import Dict, Optional
 
 
 def get_weather_info(location: str) -> str:

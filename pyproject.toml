@@ -16,7 +16,8 @@ dependencies = [
     "openai>=1.12.0",
     "anthropic>=0.21.0",
     "modelcontextprotocol>=1.0.1",
-    "duckduckgo-search>=6.2.6"
+    "duckduckgo-search>=6.2.6",
+    "pip>=25.3",
 ]
 
 [tool.uv]

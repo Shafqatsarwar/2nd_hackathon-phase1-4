@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
-from sqlmodel import Session, select
-from ..models import Task, TaskCreate, TaskUpdate
+from sqlmodel import select
+from ..models import Task, TaskCreate
 from ..agents.skills.analysis import analyze_sentiment, suggest_tags
 
 
@@ -56,9 +56,9 @@ class MCPTaskTools:
             query = select(Task).where(Task.user_id == user_id)
 
             if status == "pending":
-                query = query.where(Task.completed == False)
+                query = query.where(Task.completed.is_(False))
             elif status == "completed":
-                query = query.where(Task.completed == True)
+                query = query.where(Task.completed.is_(True))
 
             tasks = session.exec(query).all()
 

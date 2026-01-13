@@ -1,42 +1,73 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useChat, Message } from "ai/react"; // Vercel AI SDK
+import { useChat, Message } from "ai/react";
 import { createAuthClient } from "better-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, MicOff, Send, Volume2, StopCircle, RefreshCw, User as UserIcon, Bot as BotIcon } from "lucide-react";
+import {
+    Mic,
+    MicOff,
+    Send,
+    Volume2,
+    VolumeX,
+    StopCircle,
+    User as UserIcon,
+    Bot as BotIcon,
+    Languages,
+    Sparkles
+} from "lucide-react";
 import clsx from "clsx";
 import SignOutButton from "../../components/SignOutButton";
 
 const authClient = createAuthClient();
 
+// Voice state management
+interface VoiceState {
+    isListening: boolean;
+    isSpeaking: boolean;
+    language: "en-US" | "ur-PK";
+    autoSpeak: boolean;
+    transcript: string;
+}
+
 export default function ChatPage() {
     const [session, setSession] = useState<any>(null);
-    const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [language, setLanguage] = useState<"en-US" | "ur-PK">("en-US");
+    const [voiceState, setVoiceState] = useState<VoiceState>({
+        isListening: false,
+        isSpeaking: false,
+        language: "en-US",
+        autoSpeak: false,
+        transcript: ""
+    });
 
     const router = useRouter();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-    // Vercel AI SDK Hook
-    const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, reload, stop } = useChat({
+    // Vercel AI SDK Hook with enhanced configuration
+    const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, stop } = useChat({
         api: "/api/chat",
         body: {
             userId: session?.user?.id,
             token: session?.token,
-            language: language,
+            language: voiceState.language,
         },
         onError: (err: Error) => {
             console.error("Chat error:", err);
+        },
+        onFinish: (message) => {
+            // Auto-speak AI responses if enabled
+            if (voiceState.autoSpeak && message.role === "assistant") {
+                speakMessage(message.content);
+            }
         }
     });
 
-    // 1. Auth Check
+    // Auth Check
     useEffect(() => {
         async function init() {
             const isAdmin = localStorage.getItem("admin_access") === "true";
@@ -58,85 +89,82 @@ export default function ChatPage() {
         init();
     }, [router]);
 
-    // 2. Scroll to bottom
+    // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // 3. Speech Recognition (STT) - Browser Native
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
+
+    // Enhanced Speech Recognition (STT)
     const toggleListening = () => {
         if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
             alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
             return;
         }
 
-        if (isListening) {
+        if (voiceState.isListening) {
             recognitionRef.current?.stop();
-            setIsListening(false);
+            setVoiceState(prev => ({ ...prev, isListening: false }));
         } else {
             try {
                 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
-                recognition.continuous = false; // Change back to false to avoid timeouts
-                recognition.interimResults = true; // Show interim results
-                recognition.lang = language; // Use selected language
+
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = voiceState.language;
                 recognition.maxAlternatives = 1;
 
-                // Set interim and final result timeouts to prevent hanging
-                recognition.interimResults = true;
-
-                recognition.onstart = () => setIsListening(true);
+                recognition.onstart = () => {
+                    setVoiceState(prev => ({ ...prev, isListening: true, transcript: "" }));
+                };
 
                 recognition.onend = () => {
-                    // Only set to not listening if we didn't restart manually
-                    if (isListening) {
-                        setIsListening(false);
-                    }
+                    setVoiceState(prev => ({ ...prev, isListening: false }));
                 };
 
                 recognition.onerror = (event: any) => {
-                    console.error("Speech recognition error", event.error);
+                    console.error("Speech recognition error:", event.error);
 
-                    // Handle specific errors gracefully
-                    if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
-                        // Stop listening if there's a permission or audio issue
-                        setIsListening(false);
-
-                        if (event.error === 'not-allowed') {
-                            alert("Microphone access denied. Please allow microphone access in your browser settings.");
-                        } else if (event.error === 'audio-capture') {
-                            alert("Could not access microphone. Please check if a microphone is connected and accessible.");
-                        }
-                        // For 'no-speech', just silently stop without alert
-                    } else {
-                        // For other errors, stop listening
-                        setIsListening(false);
+                    if (event.error === "not-allowed") {
+                        alert("Microphone access denied. Please allow microphone access in your browser settings.");
+                    } else if (event.error === "audio-capture") {
+                        alert("Could not access microphone. Please check if a microphone is connected.");
                     }
+
+                    setVoiceState(prev => ({ ...prev, isListening: false }));
                 };
 
                 recognition.onresult = (event: any) => {
-                    let finalTranscript = '';
-                    let interimTranscript = '';
+                    let finalTranscript = "";
+                    let interimTranscript = "";
 
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
-                            finalTranscript += transcript + ' ';
+                            finalTranscript += transcript + " ";
                         } else {
                             interimTranscript += transcript;
                         }
                     }
 
                     if (finalTranscript) {
-                        setInput(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
-                    } else if (interimTranscript) {
-                        setInput(prev => prev ? prev + ' ' + interimTranscript : interimTranscript);
-                    }
-
-                    // Auto-stop after getting final result to prevent timeout
-                    if (finalTranscript) {
+                        setInput(prev => prev ? prev + " " + finalTranscript.trim() : finalTranscript.trim());
+                        setVoiceState(prev => ({ ...prev, transcript: finalTranscript.trim() }));
                         recognition.stop();
-                        setIsListening(false);
+                    } else if (interimTranscript) {
+                        setVoiceState(prev => ({ ...prev, transcript: interimTranscript }));
                     }
                 };
 
@@ -145,29 +173,61 @@ export default function ChatPage() {
             } catch (error) {
                 console.error("Error initializing speech recognition:", error);
                 alert("Failed to initialize speech recognition. Please check browser permissions.");
-                setIsListening(false);
+                setVoiceState(prev => ({ ...prev, isListening: false }));
             }
         }
     };
 
-    // 4. Text to Speech (TTS) - Browser Native
+    // Enhanced Text-to-Speech (TTS)
     const speakMessage = (text: string) => {
-        if (!("speechSynthesis" in window)) return;
-
-        if (isSpeaking) {
-            window.speechSynthesis.cancel();
-            setIsSpeaking(false);
+        if (!("speechSynthesis" in window)) {
+            console.warn("Text-to-speech is not supported in this browser.");
             return;
         }
 
+        if (voiceState.isSpeaking) {
+            window.speechSynthesis.cancel();
+            setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+            return;
+        }
+
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = language; // Use selected language
+        utterance.lang = voiceState.language;
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
-        utterance.onend = () => setIsSpeaking(false);
+        utterance.volume = 1.0;
 
-        setIsSpeaking(true);
+        utterance.onstart = () => {
+            setVoiceState(prev => ({ ...prev, isSpeaking: true }));
+        };
+
+        utterance.onend = () => {
+            setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+        };
+
+        utterance.onerror = (event) => {
+            console.error("Speech synthesis error:", event);
+            setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+        };
+
+        utteranceRef.current = utterance;
         window.speechSynthesis.speak(utterance);
+    };
+
+    // Toggle language
+    const toggleLanguage = () => {
+        setVoiceState(prev => ({
+            ...prev,
+            language: prev.language === "en-US" ? "ur-PK" : "en-US"
+        }));
+    };
+
+    // Toggle auto-speak
+    const toggleAutoSpeak = () => {
+        setVoiceState(prev => ({ ...prev, autoSpeak: !prev.autoSpeak }));
     };
 
     if (!session) return (
@@ -190,11 +250,37 @@ export default function ChatPage() {
                     </Link>
                     <div className="h-6 w-[1px] bg-white/10" />
                     <div>
-                        <h1 className="font-bold text-white text-lg">AI Assistant</h1>
-                        <p className="text-xs text-purple-400 font-medium tracking-wider">VOICE ENABLED</p>
+                        <h1 className="font-bold text-white text-lg flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-purple-400" />
+                            AI Assistant
+                        </h1>
+                        <p className="text-xs text-purple-400 font-medium tracking-wider">
+                            VOICE ENABLED • {voiceState.language === "en-US" ? "ENGLISH" : "اردو"}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
+                    {/* Language Toggle */}
+                    <button
+                        onClick={toggleLanguage}
+                        className="p-2 hover:bg-white/5 rounded-full transition"
+                        title={`Switch to ${voiceState.language === "en-US" ? "Urdu" : "English"}`}
+                    >
+                        <Languages className="w-5 h-5" />
+                    </button>
+
+                    {/* Auto-speak Toggle */}
+                    <button
+                        onClick={toggleAutoSpeak}
+                        className={clsx(
+                            "p-2 rounded-full transition",
+                            voiceState.autoSpeak ? "bg-purple-500/20 text-purple-400" : "hover:bg-white/5"
+                        )}
+                        title={`Auto-speak: ${voiceState.autoSpeak ? "ON" : "OFF"}`}
+                    >
+                        {voiceState.autoSpeak ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                    </button>
+
                     <span className="hidden md:block text-sm text-slate-400">{session.user.name}</span>
                     <SignOutButton />
                 </div>
@@ -210,6 +296,9 @@ export default function ChatPage() {
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2">How can I help you?</h2>
                             <p className="text-slate-400">Manage tasks, ask questions, or check GitHub issues.</p>
+                            <p className="text-xs text-slate-500 mt-2">
+                                🎙️ Click the microphone to speak • 🔊 Auto-speak is {voiceState.autoSpeak ? "ON" : "OFF"}
+                            </p>
                         </div>
                     )}
 
@@ -252,7 +341,7 @@ export default function ChatPage() {
                                             className="p-1.5 text-slate-400 hover:text-white bg-black/20 rounded-full hover:bg-black/40"
                                             title="Read aloud"
                                         >
-                                            <Volume2 size={12} />
+                                            {voiceState.isSpeaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
                                         </button>
                                     </div>
                                 </div>
@@ -295,10 +384,16 @@ export default function ChatPage() {
                             <input
                                 value={input}
                                 onChange={handleInputChange}
-                                placeholder={isListening ? "Listening..." : "Message AI..."}
+                                placeholder={
+                                    voiceState.isListening
+                                        ? `🎙️ Listening... ${voiceState.transcript}`
+                                        : "Message AI..."
+                                }
                                 className={clsx(
                                     "w-full bg-neutral-800 border-2 rounded-2xl px-4 py-4 pr-12 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all",
-                                    isListening ? "border-red-500/50 animate-pulse placeholder:text-red-400" : "border-transparent focus:border-purple-500/50 text-white placeholder:text-slate-500"
+                                    voiceState.isListening
+                                        ? "border-red-500/50 animate-pulse placeholder:text-red-400"
+                                        : "border-transparent focus:border-purple-500/50 text-white placeholder:text-slate-500"
                                 )}
                             />
 
@@ -308,11 +403,13 @@ export default function ChatPage() {
                                     onClick={toggleListening}
                                     className={clsx(
                                         "p-2 rounded-xl transition-all active:scale-95",
-                                        isListening ? "bg-red-500/20 text-red-400" : "hover:bg-white/10 text-slate-400 hover:text-white"
+                                        voiceState.isListening
+                                            ? "bg-red-500/20 text-red-400 animate-pulse"
+                                            : "hover:bg-white/10 text-slate-400 hover:text-white"
                                     )}
                                     title="Voice Input"
                                 >
-                                    {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                    {voiceState.isListening ? <MicOff size={20} /> : <Mic size={20} />}
                                 </button>
                             </div>
                         </div>

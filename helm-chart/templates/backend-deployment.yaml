@@ -44,13 +44,10 @@ spec:
             httpGet:
               path: /health
               port: http
+          envFrom:
+            - secretRef:
+                name: {{ .Values.backend.secretRef }}
           env:
-            - name: DATABASE_URL
-              value: {{ .Values.backend.env.DATABASE_URL | quote }}
-            - name: BETTER_AUTH_SECRET
-              value: {{ .Values.backend.env.BETTER_AUTH_SECRET | quote }}
-            - name: OPENAI_API_KEY
-              value: {{ .Values.backend.env.OPENAI_API_KEY | quote }}
             - name: PORT
               value: "8000"
           resources:

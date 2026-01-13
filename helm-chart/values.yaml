@@ -88,9 +88,14 @@ backend:
   service:
     port: 8000
   env:
+    # These values are sensitive and should be provided via --set or a custom values file.
+    # Example: --set backend.env.DATABASE_URL="your-database-url"
     DATABASE_URL: ""
     BETTER_AUTH_SECRET: ""
     OPENAI_API_KEY: ""
+    GITHUB_TOKEN: ""
+    GITHUB_OWNER: ""
+    GITHUB_REPO: ""
   secretRef: "todo-app-secrets"
 
 frontend:

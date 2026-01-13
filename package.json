@@ -18,5 +18,11 @@
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
     "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.2.0"
+  },
+  "overrides": {
+    "zod": "^3.25.76"
   }
 }

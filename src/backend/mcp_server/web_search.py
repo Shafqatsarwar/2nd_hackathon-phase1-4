@@ -1,4 +1,3 @@
-import logging
 from duckduckgo_search import DDGS
 
 def search_web(query: str, max_results: int = 10) -> str:
