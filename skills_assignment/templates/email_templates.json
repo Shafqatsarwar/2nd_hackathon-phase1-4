@@ -1,0 +1,35 @@
+{
+  "meeting_request": {
+    "subject_templates": [
+      "Re: {original_subject}",
+      "Re: Meeting Request - {original_subject}",
+      "Availability for {topic}"
+    ],
+    "body_templates": [
+      "Hi {sender_name},\n\nThank you for your meeting request. I'd be happy to discuss {topic}.\n\nI'm available at the following times:\n{available_slots}\n\nPlease let me know what works best for you.\n\nBest regards,\n[Your Name]",
+      "Hello {sender_name},\n\nI received your request for a meeting about {topic}. I'm available on {available_days} at {available_times}.\n\nLet me know if any of these times work for you.\n\nThanks,\n[Your Name]"
+    ]
+  },
+  "information_request": {
+    "subject_templates": [
+      "Re: {original_subject}",
+      "Information Request Response - {original_subject}",
+      "Details for {topic}"
+    ],
+    "body_templates": [
+      "Hi {sender_name},\n\nThank you for your inquiry about {topic}. I'm happy to provide the information you requested.\n\n{information_content}\n\nPlease let me know if you need any additional details.\n\nBest regards,\n[Your Name]",
+      "Hello {sender_name},\n\nAs requested, here is the information about {topic}:\n\n{information_content}\n\nI hope this addresses your questions.\n\nThanks,\n[Your Name]"
+    ]
+  },
+  "follow_up": {
+    "subject_templates": [
+      "Re: {original_subject}",
+      "Update on {topic}",
+      "Following up on {original_subject}"
+    ],
+    "body_templates": [
+      "Hi {sender_name},\n\nThank you for following up. Here's an update on {topic}:\n\n{update_content}\n\nI'll continue to monitor the situation and provide updates as needed.\n\nBest regards,\n[Your Name]",
+      "Hello {sender_name},\n\nI wanted to provide you with an update regarding {topic}:\n\n{update_content}\n\nPlease let me know if you have any questions.\n\nThanks,\n[Your Name]"
+    ]
+  }
+}
