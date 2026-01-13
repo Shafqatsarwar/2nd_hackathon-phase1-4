@@ -1,32 +1,74 @@
 # Human Job Skills Extraction
 
-This project contains 5 focused, reusable capabilities extracted from daily work routines. Each skill is designed to replace manual tasks, save time, and reduce mental load.
+This project contains **2 focused, reusable capabilities** extracted from daily work routines. Each skill is designed to replace manual tasks, save time, and reduce mental load.
 
 ## Skills Overview
 
 | Skill | Purpose | Time Saved | Quality Improved |
 |-------|---------|------------|------------------|
-| Meeting Minutes Generator | Automatically generates structured meeting minutes from audio transcripts or meeting notes | 30-45 minutes → 3-5 minutes | Standardized format, consistent action item identification |
-| Task Prioritizer | Automatically prioritizes tasks based on urgency, importance, effort, and business impact | 15-20 minutes → 2-3 minutes | Objective scoring, consistent application of criteria |
-| Email Responder | Automatically generates appropriate responses to common types of emails | 5-15 minutes → 1-2 minutes | Consistent communication style, reduced typos |
-| Document Analyzer | Analyzes documents to extract key information and identify action items | 10-20 minutes → 1-3 minutes | Standardized extraction, consistent identification |
-| Time Tracker | Tracks and categorizes time spent on different activities throughout the workday | 10-15 minutes → Automatic | Precise measurement, detailed analytics |
+| **Email Responder** | Automatically generates appropriate responses to common types of emails | 5-15 minutes → 1-2 minutes | Consistent communication style, reduced typos, professional tone |
+| **Meeting Minutes Generator** | Automatically generates structured meeting minutes from transcripts or notes | 30-45 minutes → 3-5 minutes | Standardized format, consistent action item identification |
+
+## Total Impact
+- **Time Savings**: 35-60 minutes per day
+- **Quality Improvements**: Standardized outputs, reduced errors, consistent formatting
+- **Mental Load Reduction**: Automated repetitive tasks, freeing up cognitive resources
 
 ## Skills Implemented
 
-1. **Meeting Minutes Generator**: Converts raw meeting notes or transcribed audio into structured minutes with action items, decisions, and key discussion points in a standardized template.
+### 1. Email Responder
+**File**: `email_responder.py` (299 lines)
 
-2. **Task Prioritizer**: Evaluates tasks using the Eisenhower Matrix and assigns priority scores based on urgency, importance, effort, and business impact to generate ranked task lists.
+Analyzes incoming emails and automatically generates contextually appropriate responses:
+- **Identifies email types**: Meeting requests, information requests, follow-ups, acknowledgments
+- **Personalizes responses**: Extracts sender names and customizes templates
+- **Analyzes tone**: Suggests appropriate response tone (professional, friendly-professional, casual)
+- **Confidence scoring**: Provides confidence level for each generated response
 
-3. **Email Responder**: Analyzes email content to categorize requests and generates contextually appropriate responses based on communication preferences and template libraries.
+**Time Saved**: 5-15 minutes → 1-2 minutes per email
 
-4. **Document Analyzer**: Extracts key terms, generates summaries, identifies important dates and figures, and flags potential action items from documents with structured metadata.
+### 2. Meeting Minutes Generator
+**File**: `meeting_minutes_generator.py` (202 lines)
 
-5. **Time Tracker**: Monitors computer activity to infer active work time, categorizes activities by application used, and generates productivity insights and reports.
+Converts raw meeting transcripts into structured, professional meeting minutes:
+- **Extracts participants**: Automatically identifies meeting attendees
+- **Identifies action items**: Finds tasks with owners and deadlines
+- **Captures decisions**: Extracts key decisions made during the meeting
+- **Formats professionally**: Generates standardized markdown output
 
-## Demo
+**Time Saved**: 30-45 minutes → 3-5 minutes per meeting
 
-A 60-90 second screen recording demonstrating each skill is available separately.
+## Quick Start
+
+Run the demonstration script to see both skills in action:
+
+```bash
+python demo_skills.py
+```
+
+Or run individual skills:
+
+```bash
+# Email Responder Demo
+python email_responder.py
+
+# Meeting Minutes Generator Demo
+python meeting_minutes_generator.py
+```
+
+## Files Structure
+
+```
+skills_assignment/
+├── README.md                           # This file
+├── SKILLS_SUMMARY.md                   # Detailed skills summary
+├── demo_skills.py                      # Combined demonstration script
+├── email_responder.py                  # Email responder implementation
+├── email_responder.skill.md            # Email responder specification
+├── meeting_minutes_generator.py        # Meeting minutes implementation
+├── meeting_minutes_generator.skill.md  # Meeting minutes specification
+└── templates/                          # Template files
+```
 
 ## Reference
 
