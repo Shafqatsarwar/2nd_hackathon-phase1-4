@@ -1,9 +1,20 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from sqlmodel import create_engine, SQLModel, Session
 from sqlalchemy.pool import QueuePool
 
-load_dotenv(".env.local", override=True)
+# Load environment variables from multiple possible locations
+env_paths = [
+    Path(__file__).parent / ".env.local",  # src/backend/.env.local
+    Path(__file__).parent.parent.parent / ".env",  # project root .env
+    ".env.local",  # current directory
+]
+
+for env_path in env_paths:
+    if Path(env_path).exists():
+        load_dotenv(env_path, override=True)
+        break
 
 # Database URL should be in .env:
 # DATABASE_URL=postgresql://user:pass@ep-hostname.region.aws.neon.tech/dbname?sslmode=require

@@ -1,10 +1,21 @@
 import os
+from pathlib import Path
 import jwt
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from dotenv import load_dotenv
 
-load_dotenv(".env.local", override=True)
+# Load environment variables from multiple possible locations
+env_paths = [
+    Path(__file__).parent / ".env.local",  # src/backend/.env.local
+    Path(__file__).parent.parent.parent / ".env",  # project root .env
+    ".env.local",  # current directory
+]
+
+for env_path in env_paths:
+    if Path(env_path).exists():
+        load_dotenv(env_path, override=True)
+        break
 
 # Shared secret between Frontend and Backend
 BETTER_AUTH_SECRET = os.getenv("BETTER_AUTH_SECRET")

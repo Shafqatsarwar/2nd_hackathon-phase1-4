@@ -176,7 +176,7 @@ def create_task(
 
 @app.get("/api/{user_id}/tasks/{id}", response_model=Task)
 def get_task(
-    user_id: str = Path(..., example="admin", description="Enter 'admin' or 'guest_user'"),
+    user_id: str = Path(..., examples=["admin"], description="Enter 'admin' or 'guest_user'"),
     id: int = Path(..., examples=[1], description="The ID of the task to retrieve"),
     token_user_id: str = Depends(verify_jwt),
     session: Session = Depends(get_session)
@@ -191,7 +191,7 @@ def get_task(
 
 @app.put("/api/{user_id}/tasks/{id}", response_model=Task)
 def update_task_all(
-    user_id: str = Path(..., example="admin", description="Enter 'admin' or 'guest_user'"),
+    user_id: str = Path(..., examples=["admin"], description="Enter 'admin' or 'guest_user'"),
     id: int = Path(..., examples=[1], description="The ID of the task to update"),
     task: TaskUpdate = None,
     token_user_id: str = Depends(verify_jwt),
@@ -215,7 +215,7 @@ def update_task_all(
 
 @app.patch("/api/{user_id}/tasks/{id}/complete", response_model=Task)
 def toggle_task(
-    user_id: str = Path(..., example="admin", description="Enter 'admin' or 'guest_user'"),
+    user_id: str = Path(..., examples=["admin"], description="Enter 'admin' or 'guest_user'"),
     id: int = Path(..., examples=[1], description="The ID of the task to toggle"),
     token_user_id: str = Depends(verify_jwt),
     session: Session = Depends(get_session)
@@ -235,7 +235,7 @@ def toggle_task(
 
 @app.delete("/api/{user_id}/tasks/{id}")
 def delete_task(
-    user_id: str = Path(..., example="admin", description="Enter 'admin' or 'guest_user'"),
+    user_id: str = Path(..., examples=["admin"], description="Enter 'admin' or 'guest_user'"),
     id: int = Path(..., examples=[1], description="The ID of the task to delete"),
     token_user_id: str = Depends(verify_jwt),
     session: Session = Depends(get_session)
