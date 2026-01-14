@@ -6,12 +6,12 @@ The issue was that the OpenAI API key needed **quotes** in the `.env` file!
 
 ### ❌ Wrong Format:
 ```env
-OPENAI_API_KEY=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
+OPENAI_API_KEY=your_actual_openai_api_key_here
 ```
 
 ### ✅ Correct Format:
 ```env
-OPENAI_API_KEY="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"
+OPENAI_API_KEY="your_actual_openai_api_key_here"
 ```
 
 ## 🔄 Backend Will Auto-Reload
@@ -50,17 +50,17 @@ Make sure all your `.env` files have quotes around the API key:
 
 ### 1. Backend: `src/backend/.env.local`
 ```env
-OPENAI_API_KEY="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"
+OPENAI_API_KEY="your_actual_openai_api_key_here"
 ```
 
 ### 2. Frontend: `src/frontend/.env.local`
 ```env
-OPENAI_API_KEY="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"
+OPENAI_API_KEY="your_actual_openai_api_key_here"
 ```
 
 ### 3. Docker: `.env` (project root)
 ```env
-OPENAI_API_KEY="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"
+OPENAI_API_KEY="your_actual_openai_api_key_here"
 ```
 
 ## 🎊 Status: READY!
