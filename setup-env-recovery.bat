@@ -11,10 +11,10 @@ echo BETTER_AUTH_SECRET=my_super_secure_hackathon_secret_key_2025
 echo DATABASE_URL=postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-abcwopjg-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require^&channel_binding=require
 echo.
 echo # OpenAI API Key for AI Chatbot
-echo OPENAI_API_KEY=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
+echo OPENAI_API_KEY=your_openai_api_key_here
 echo.
 echo # GitHub Integration
-echo GITHUB_TOKEN=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
+echo GITHUB_TOKEN=your_github_token_here
 echo GITHUB_OWNER=Shafqatsarwar
 echo GITHUB_REPO=2nd_hackathon-phase1-4
 ) > src\frontend\.env.local
@@ -29,10 +29,10 @@ echo DATABASE_URL=postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-a
 echo BETTER_AUTH_SECRET=my_super_secure_hackathon_secret_key_2025
 echo.
 echo # OpenAI API Key for AI Chatbot
-echo OPENAI_API_KEY=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
+echo OPENAI_API_KEY=your_openai_api_key_here
 echo.
 echo # GitHub Integration
-echo GITHUB_TOKEN=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
+echo GITHUB_TOKEN=your_github_token_here
 echo GITHUB_OWNER=Shafqatsarwar
 echo GITHUB_REPO=2nd_hackathon-phase1-4
 ) > src\backend\.env.local
