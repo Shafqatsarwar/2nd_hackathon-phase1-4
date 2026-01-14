@@ -1,200 +1,132 @@
-# 🛠️ Kubernetes & Docker Deployment Instructions
+# 🛠️ Dashboard & Deployment Instructions
 
-This guide provides step-by-step instructions for containerizing and deploying "The Evolution of Todo" application using Docker and Kubernetes.
-
----
-
-## 🪟 For Windows Users (PowerShell)
-
-**Your current location in PowerShell:**
-```
-PS \\wsl.localhost\Ubuntu\home\shafqatsarwar\Projects\2nd_hackathon-phase1-4>
-```
-
-### Quick Start - Docker Deployment
-
-**Run these commands in PowerShell (in order):**
-
-#### 1. Build Images (5-8 minutes total)
-```powershell
-# Build Backend (2-3 min)
-docker build -f Dockerfile.backend -t todo-backend:latest .
-
-# Build Frontend (3-5 min)
-docker build -f Dockerfile.frontend -t todo-frontend:latest .
-
-# Verify images
-docker images
-```
-
-#### 2. Configure Environment
-```powershell
-# Create .env file if it doesn't exist
-@"
-DATABASE_URL=postgresql://postgres:postgres@db:5432/todo_db
-BETTER_AUTH_SECRET=change-this-secret-in-production
-OPENAI_API_KEY=your-openai-api-key-here
-GITHUB_TOKEN=optional
-"@ | Out-File -FilePath .env -Encoding utf8
-
-# Edit with your actual OPENAI_API_KEY
-notepad .env
-```
-
-#### 3. Start Services
-```powershell
-# Start all containers
-docker-compose up -d
-
-# Check status
-docker-compose ps
-
-# Test backend
-curl http://localhost:8000/health
-
-# Open application
-start http://localhost:3000
-```
-
-**Access:**
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000/docs
-
-**Useful Commands:**
-```powershell
-docker-compose logs -f        # View logs
-docker-compose down           # Stop services
-docker-compose restart        # Restart services
-```
+This guide covers everything you need to know about deploying "The Evolution of Todo" using **Docker** (Phase 1-4) and **Kubernetes**.
 
 ---
 
-## 🐧 For Linux/WSL Users (Bash)
+## 🐳 Docker Deployment (Recommended)
 
-### Docker Deployment
+We have created an **automated deployment script** that handles everything for you.
 
+### Option 1: Automated Deployment (Easiest)
+
+**1. Navigate to the project directory:**
 ```bash
-# Navigate to project
 cd ~/Projects/2nd_hackathon-phase1-4
-
-# Build images
-docker build -f Dockerfile.backend -t todo-backend:latest .
-docker build -f Dockerfile.frontend -t todo-frontend:latest .
-
-# Create .env file
-cat > .env << 'EOF'
-DATABASE_URL=postgresql://postgres:postgres@db:5432/todo_db
-BETTER_AUTH_SECRET=change-this-secret-in-production
-OPENAI_API_KEY=your-openai-api-key-here
-EOF
-
-# Edit .env with your API key
-nano .env
-
-# Start services
-docker-compose up -d
-
-# Check status
-docker-compose ps
-curl http://localhost:8000/health
 ```
 
-**Access:**
-- **Frontend**: http://localhost:3000
-- **Backend**: http://localhost:8000
+**2. Make the script executable:**
+```bash
+chmod +x deploy-docker.sh
+```
 
+**3. Run the deployment script:**
+```bash
+./deploy-docker.sh
+```
+
+**This script will automatically:**
+- Create the `.env` file with your secure keys
+- Build Docker images for Backend and Frontend
+- Stop any conflicting containers
+- Start all services using `docker-compose`
+- Perform health checks
+
+**Once finished, access your app:**
+- **Frontend UI:** [http://localhost:3000](http://localhost:3000)
+- **Backend API:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Database:** `localhost:5432`
 
 ---
 
-## ☸️ Kubernetes Deployment
+### Option 2: Manual Docker Deployment
+
+If you prefer to run commands manually:
+
+**1. Build Images:**
+```bash
+# Backend (2-3 min)
+docker build -f Dockerfile.backend -t todo-backend:latest .
+
+# Frontend (3-5 min)
+docker build -f Dockerfile.frontend -t todo-frontend:latest .
+```
+
+**2. Create .env File:**
+Ensure you have a `.env` file in the root directory with the following variables:
+- `DATABASE_URL`
+- `BETTER_AUTH_SECRET`
+- `OPENAI_API_KEY`
+- `GITHUB_TOKEN` (Optional)
+
+**3. Start Services:**
+```bash
+docker-compose up -d
+```
+
+**4. View Logs:**
+```bash
+docker-compose logs -f
+```
+
+---
+
+## ☸️ Kubernetes Deployment (Advanced)
+
+For production-grade deployment using Kubernetes and Helm.
 
 ### Prerequisites
-- Docker Desktop with Kubernetes enabled OR Minikube
+- Docker Desktop (with K8s enabled) or Minikube
 - Helm 3.x
-- kubectl
+- `kubectl`
 
-### For Windows (PowerShell) or Linux/WSL (Bash)
+### Deployment Steps
 
-#### Step 1: Start Minikube
+**1. Start Minikube (if using Minikube):**
 ```bash
-# Run in WSL/Bash terminal
 minikube start --driver=docker
-
-# Configure to use Minikube's Docker
 eval $(minikube docker-env)
 ```
 
-#### Step 2: Build Images in Minikube
+**2. Build Images Inside Minikube:**
 ```bash
-# Run in WSL/Bash terminal (after eval command above)
 docker build -f Dockerfile.backend -t todo-backend:latest .
 docker build -f Dockerfile.frontend -t todo-frontend:latest .
 ```
 
-#### Step 3: Create Secrets
+**3. Install with Helm:**
 ```bash
-# Run in WSL/Bash or PowerShell
-kubectl create secret generic todo-app-secrets \
-  --from-literal=DATABASE_URL="postgresql://postgres:postgres@postgres-service:5432/todo_db" \
-  --from-literal=BETTER_AUTH_SECRET="your_auth_secret" \
-  --from-literal=OPENAI_API_KEY="your_openai_key" \
-  --from-literal=GITHUB_TOKEN="your_github_token"
-```
-
-#### Step 4: Deploy with Helm
-```bash
-# Run in WSL/Bash or PowerShell
 helm install todo-app ./helm-chart
-
-# Verify deployment
-kubectl get pods
-kubectl get svc
 ```
 
-#### Step 5: Access Application
-
-**Option A: Port Forwarding (Recommended)**
+**4. Access the App (Port Forwarding):**
 ```bash
-# Terminal 1 - Frontend
+# Terminal 1: Frontend
 kubectl port-forward svc/todo-app-frontend-service 3000:3000
 
-# Terminal 2 - Backend
+# Terminal 2: Backend
 kubectl port-forward svc/todo-app-backend-service 8000:8000
 ```
 
-**Option B: Management Script**
-```bash
-# Run in WSL/Bash
-uv run python manage_phase_4.py tunnel
-```
+---
 
-**Access:**
-- **Frontend**: http://localhost:3000
-- **Backend**: http://localhost:8000/docs
+## 🔎 Useful Commands
+
+| Action | Command |
+|--------|---------|
+| **Stop Docker** | `docker-compose down` |
+| **Restart Docker** | `docker-compose restart` |
+| **Check Logs** | `docker-compose logs -f` |
+| **K8s Status** | `kubectl get pods` |
+| **Uninstall Helm** | `helm uninstall todo-app` |
 
 ---
 
-## 🤖 3. AI-Assisted Operations
+## 🤖 AI Features
 
-Use AI to manage and monitor your cluster:
+Once deployed, the following AI features will be active:
+- **Smart Chatbot:** Ask questions about tasks, weather, or GitHub.
+- **Task Analysis:** Auto-generates tags and priority suggestions.
+- **Voice Mode:** Speak to your todo list (browser-supported).
 
-### Using `kubectl-ai`
-```bash
-# Scale your backend
-kubectl-ai "scale deployment todo-app-backend to 3 replicas"
-
-# Check pod health
-kubectl-ai "why is my frontend pod failing?"
-```
-
-### Using `kagent`
-```bash
-# Analyze cluster resources
-kagent "analyze resource usage and suggest optimizations"
-```
-
-## 🧪 Verification Checklist
-- [ ] Pods are in `Running` state: `kubectl get pods`
-- [ ] Services are accessible via tunnel: http://localhost:3000
-- [ ] Data persists after pod restart: `kubectl delete pod -l app=todo-backend`
-- [ ] AI Chat is functional within the K8s environment
+Enjoy your cloud-native AI application! 🚀
