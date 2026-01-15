@@ -9,11 +9,12 @@ echo ""
 
 # Step 1: Create .env file for Docker Compose
 echo "📝 Step 1: Creating .env file for Docker Compose..."
+cat > .env <<'EOF'
 # Docker Compose Environment Variables
 DATABASE_URL=postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-abcwopjg-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 BETTER_AUTH_SECRET=my_super_secure_hackathon_secret_key_2025
-OPENAI_API_KEY=${OPENAI_API_KEY:-"your_openai_api_key_here"}
-GITHUB_TOKEN=${GITHUB_TOKEN:-"your_github_token_here"}
+OPENAI_API_KEY="your_openai_api_key_here"
+GITHUB_TOKEN="your_github_token_here"
 GITHUB_OWNER=Shafqatsarwar
 GITHUB_REPO=2nd_hackathon-phase1-4
 EOF
@@ -21,9 +22,10 @@ EOF
 echo "✅ Created .env file"
 echo ""
 
-# Step 2: Stop any running containers
+# Step 2: Stop any existing containers
 echo "🛑 Step 2: Stopping any existing containers..."
-docker-compose down 2>/dev/null || true
+echo "Running 'docker compose down'..."
+docker compose down --remove-orphans || docker-compose down --remove-orphans || true
 echo "✅ Containers stopped"
 echo ""
 
@@ -49,8 +51,8 @@ echo "✅ Frontend image built"
 echo ""
 
 # Step 4: Start containers
-echo "🚀 Step 4: Starting containers with docker-compose..."
-docker-compose up -d || {
+echo "🚀 Step 4: Starting containers..."
+docker compose up -d || docker-compose up -d || {
     echo "❌ Failed to start containers!"
     exit 1
 }

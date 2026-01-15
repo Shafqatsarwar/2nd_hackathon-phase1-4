@@ -40,10 +40,17 @@ spec:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 5
           envFrom:
             - secretRef:
                 name: {{ .Values.backend.secretRef }}
@@ -51,7 +58,12 @@ spec:
             - name: PORT
               value: "8000"
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

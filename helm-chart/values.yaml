@@ -84,7 +84,7 @@ backend:
   image:
     repository: todo-backend
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   service:
     port: 8000
   env:
@@ -102,9 +102,10 @@ frontend:
   image:
     repository: todo-frontend
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   service:
     port: 3000
   env:
-    NEXT_PUBLIC_BACKEND_URL: "http://todo-backend-service:8000"
-    NEXT_PUBLIC_BETTER_AUTH_URL: "http://todo-frontend-service:3000"
+    NEXT_PUBLIC_BACKEND_URL: "http://localhost:8000"
+    NEXT_PUBLIC_BETTER_AUTH_URL: "http://localhost:3000"
+  secretRef: "todo-app-secrets"

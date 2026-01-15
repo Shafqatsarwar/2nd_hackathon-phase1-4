@@ -193,19 +193,32 @@ Access the application:
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 
-## 🔒 Security & Authentication
+## 🔒 Security & Secret Management
 
-- **Better Auth**: Handles user sessions and JWT generation
-- **JWT Middleware**: FastAPI `verify_jwt` dependency ensures user isolation
-- **Database Isolation**: Every query is scoped by `user_id`
-- **Environment Secrets**: All sensitive data in `.env` files (never committed)
+We use a "local-first" security model to keep API keys safe:
 
-## ☸️ Kubernetes Deployment
+1.  **Environment Files**:
+    -   `.env`, `src/backend/.env.local`, `src/frontend/.env.local`
+    -   These contain real API keys but are **strictly gitignored**.
+    -   Developers must create these manually (or use setup scripts).
 
-See **[instructions.md](./instructions.md)** for complete Docker and Kubernetes deployment guide.
+2.  **Deployment Scripts**:
+    -   `deploy-docker.sh` is used for automated deployment.
+    -   **Important**: To prevent accidental leakage of keys in this script, we use:
+        ```bash
+        git update-index --assume-unchanged deploy-docker.sh
+        ```
+    -   This allows developers to modify the script locally with real keys without Git seeing the changes.
 
-Quick start:
+## ☸️ Kubernetes & Docker Deployment
+
+For automated Docker deployment:
 ```bash
+./deploy-docker.sh
+```
+
+For full Kubernetes instructions, see **[instructions.md](./instructions.md)**.
+
 # Build images
 docker build -f Dockerfile.backend -t todo-backend:latest .
 docker build -f Dockerfile.frontend -t todo-frontend:latest .

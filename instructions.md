@@ -71,42 +71,61 @@ docker-compose logs -f
 
 ---
 
-## ☸️ Kubernetes Deployment (Advanced)
+## ☸️ Kubernetes Deployment (Proven Defense Strategy)
 
-For production-grade deployment using Kubernetes and Helm.
+Follow these **exact numbered commands** to deploy the application during your presentation.
 
-### Prerequisites
-- Docker Desktop (with K8s enabled) or Minikube
-- Helm 3.x
-- `kubectl`
+### 1. Pre-Flight Check & Cleanup
+Ensure Docker ports used by local dev are free.
 
-### Deployment Steps
-
-**1. Start Minikube (if using Minikube):**
 ```bash
-minikube start --driver=docker
-eval $(minikube docker-env)
+docker-compose down
 ```
 
-**2. Build Images Inside Minikube:**
+### 2. Install Helm (If missing)
+If `helm` command is not found:
+
 ```bash
-docker build -f Dockerfile.backend -t todo-backend:latest .
-docker build -f Dockerfile.frontend -t todo-frontend:latest .
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 ```
 
-**3. Install with Helm:**
+### 3. Deploy Application
+This uses the custom chart we built.
+
 ```bash
-helm install todo-app ./helm-chart
+helm upgrade --install todo-app ./helm-chart -f local-secrets.yaml
 ```
 
-**4. Access the App (Port Forwarding):**
-```bash
-# Terminal 1: Frontend
-kubectl port-forward svc/todo-app-frontend-service 3000:3000
+### 4. Verify Pods
+Check that pods are running.
 
-# Terminal 2: Backend
-kubectl port-forward svc/todo-app-backend-service 8000:8000
+```bash
+kubectl get pods
 ```
+
+*(If Backend is 0/1, wait 30 seconds. If stuck, run restart command below)*
+
+### 5. Force Restart (Fix for Startup Timing)
+If backend says `CrashLoopBackOff`, run this to fix it instantly:
+
+```bash
+kubectl rollout restart deployment todo-app-backend
+```
+
+### 6. Access Application (Port Forward)
+Run these commands in separate terminals (or background) to open the tunnels:
+
+```bash
+# Terminal 1: Frontend -> http://localhost:3000
+kubectl port-forward svc/todo-app-frontend-service 3000:3000 &
+
+# Terminal 2: Backend -> http://localhost:8000
+kubectl port-forward svc/todo-app-backend-service 8000:8000 &
+```
+
+### 🔓 Restoration Step (For Judges/Review)
+To make the application work, you must restore the API keys in `deploy-docker.sh` and `local-secrets.yaml` if they were removed for the repo push.
+
 
 ---
 
