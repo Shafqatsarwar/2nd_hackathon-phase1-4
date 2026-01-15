@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { StreamingTextResponse } from "ai";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,7 +12,8 @@ export async function POST(req: NextRequest) {
         }
 
         const lastMessage = messages[messages.length - 1];
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+        // Use INTERNAL_BACKEND_URL for container-to-container, fallback to Public/Localhost
+        const backendUrl = process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://todo-app-backend-service:8000";
 
         // Call backend chat endpoint
         const response = await fetch(`${backendUrl}/api/${userId}/chat`, {
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
         const stream = new ReadableStream({
             start(controller) {
                 const errorMsg = "I'm having trouble processing your request. Please ensure the backend server is running at " +
-                    (process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000");
+                    (process.env.NEXT_PUBLIC_BACKEND_URL || "http://todo-app-backend-service:8000");
                 const formattedError = `0:"${errorMsg.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`;
                 controller.enqueue(encoder.encode(formattedError));
                 controller.close();

@@ -25,6 +25,11 @@ spec:
             - name: http
               containerPort: 3000
               protocol: TCP
+          env:
+            - name: NEXT_PUBLIC_BACKEND_URL
+              value: "http://todo-app-backend-service:8000"
+            - name: INTERNAL_BACKEND_URL
+              value: "http://todo-app-backend-service:8000"
           envFrom:
             - secretRef:
                 name: {{ .Values.frontend.secretRef }}

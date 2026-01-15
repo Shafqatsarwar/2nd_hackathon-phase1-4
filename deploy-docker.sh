@@ -11,12 +11,12 @@ echo ""
 echo "📝 Step 1: Creating .env file for Docker Compose..."
 cat > .env <<'EOF'
 # Docker Compose Environment Variables
-DATABASE_URL=postgresql://neondb_owner:npg_zhJvIP74aTle@ep-long-waterfall-abcwopjg-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-BETTER_AUTH_SECRET=my_super_secure_hackathon_secret_key_2025
-OPENAI_API_KEY="your_openai_api_key_here"
-GITHUB_TOKEN="your_github_token_here"
-GITHUB_OWNER=Shafqatsarwar
-GITHUB_REPO=2nd_hackathon-phase1-4
+DATABASE_URL=postgresql://postgres:postgres@db:5432/todo_db
+BETTER_AUTH_SECRET=your_better_auth_secret_here
+OPENAI_API_KEY=your_openai_api_key_here
+GITHUB_TOKEN=your_github_token_here
+GITHUB_OWNER=your_github_owner
+GITHUB_REPO=your_github_repo
 EOF
 
 echo "✅ Created .env file"
